@@ -112,7 +112,7 @@ def generate_simple_effect_simulation(kpi):
 
 def generate_unified_html_export(action_results, period_desc, hospital_targets, dashboard_type="department"):
     """
-    アクション提案形式の統合HTMLを生成する (努力度表示版・リトルの法則説明削除)
+    アクション提案形式の統合HTMLを生成する (努力度表示版)
     エラーハンドリング強化版
     """
     try:

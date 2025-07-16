@@ -188,88 +188,54 @@ def _calculate_effort_status(current_census, recent_week_census, census_achievem
         }
 
 def _calculate_simple_effect_simulation(kpi):
-    """リトルの法則に基づく効果シミュレーション（乖離警告付き）"""
+    """効果シミュレーション（簡素化版）"""
     try:
         # 現在の値を取得
         weekly_admissions = kpi.get('weekly_avg_admissions', 0)
-        daily_admissions = weekly_admissions / 7  # λ（日平均新入院率）
-        current_los = kpi.get('avg_length_of_stay', 0)  # W（平均在院日数）
-        current_census = kpi.get('daily_avg_census', 0)  # L（現在の在院患者数）
+        daily_admissions = weekly_admissions / 7
+        current_los = kpi.get('avg_length_of_stay', 0)
+        current_census = kpi.get('daily_avg_census', 0)
         
-        # リトルの法則で現在の状況を確認
+        # 現在の計算値
         theoretical_census = daily_admissions * current_los
         
         # シナリオ1：新入院を週に1人増やした場合
-        # λ_new = λ + 1/7, W_new = W
         new_daily_admissions_1 = daily_admissions + 1/7
         new_census_1 = new_daily_admissions_1 * current_los
         admission_effect = new_census_1 - theoretical_census
         
         # シナリオ2：平均在院日数を1日延ばした場合  
-        # λ_new = λ, W_new = W + 1
         new_los_2 = current_los + 1
         new_census_2 = daily_admissions * new_los_2
         los_effect = new_census_2 - theoretical_census
         
-        # 乖離分析
+        # 実績との差異計算
         variance = current_census - theoretical_census
-        variance_percentage = abs(variance / theoretical_census * 100) if theoretical_census > 0 else 0
-        
-        # 乖離レベルの判定
-        if variance_percentage <= 20:
-            variance_level = "低"
-            reliability = "高"
-        elif variance_percentage <= 50:
-            variance_level = "中"
-            reliability = "中"
-        else:
-            variance_level = "高"
-            reliability = "参考"
         
         return {
             'admission_scenario': {
                 'description': "新入院を週に1人増やすと",
                 'effect': admission_effect,
                 'unit': "人の日平均在院患者数増加",
-                'calculation': f"({daily_admissions:.3f}+{1/7:.3f})×{current_los:.1f} = {new_census_1:.1f}",
-                'method': "リトルの法則",
                 'simple': True
             },
             'los_scenario': {
                 'description': "平均在院日数を1日延ばすと",
                 'effect': los_effect, 
                 'unit': "人の日平均在院患者数増加",
-                'calculation': f"{daily_admissions:.2f}×({current_los:.1f}+1) = {new_census_2:.1f}",
-                'method': "リトルの法則",
                 'simple': True
             },
             'current_status': {
                 'theoretical_census': theoretical_census,
                 'actual_census': current_census,
-                'variance': variance,
-                'variance_percentage': variance_percentage,
-                'variance_level': variance_level,
-                'reliability': reliability
-            },
-            'variance_warning': {
-                'show_warning': variance_percentage > 20,
-                'warning_level': "注意" if variance_percentage <= 50 else "警戒",
-                'message': _generate_variance_message(variance_percentage),
-                'reasons': [
-                    "長期入院患者の滞留",
-                    "他科からの転科患者", 
-                    "期間開始時点での既存患者",
-                    "季節的な入院患者数の変動",
-                    "退院調整中の患者"
-                ]
+                'variance': variance
             },
             'has_simulation': True,
             'is_simplified': True,
-            'method': "Little's Law with Variance Analysis",
-            'note': f"リトルの法則による理論計算（信頼度：{reliability}）"
+            'note': "効果予測計算"
         }
     except Exception as e:
-        logger.error(f"リトルの法則シミュレーション計算エラー: {e}")
+        logger.error(f"効果予測計算エラー: {e}")
         return {
             'admission_scenario': {
                 'description': "新入院を週に1人増やすと",
@@ -288,15 +254,6 @@ def _calculate_simple_effect_simulation(kpi):
             'error': True,
             'note': "計算エラーが発生しました"
         }
-
-def _generate_variance_message(variance_percentage):
-    """乖離レベルに応じたメッセージを生成"""
-    if variance_percentage <= 20:
-        return "理論値と実績の整合性は良好です"
-    elif variance_percentage <= 50:
-        return f"理論値と実績の乖離が{variance_percentage:.1f}%あります。効果予測は参考値としてご活用ください"
-    else:
-        return f"理論値と実績の乖離が{variance_percentage:.1f}%と大きくなっています。複数の要因が影響している可能性があります"
 
 def _decide_basic_action(kpi, feasibility, simulation):
     """基本アクション決定（従来のロジック）"""
