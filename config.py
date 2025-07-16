@@ -2,11 +2,11 @@
 
 # ===== 基本設定 =====
 APP_VERSION = "1.1"  # バージョンアップ
-APP_TITLE = "入退院分析ダッシュボード"
+APP_TITLE = "週報ダッシュボード"
 APP_ICON = "🏥"
 
 # ===== デフォルト値 =====
-DEFAULT_TOTAL_BEDS = 621
+DEFAULT_TOTAL_BEDS = 633
 DEFAULT_OCCUPANCY_RATE = 0.9  # 90%
 DEFAULT_AVG_LENGTH_OF_STAY = 12.0  # 日
 DEFAULT_ADMISSION_FEE = 55000  # 円/日
