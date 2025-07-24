@@ -219,10 +219,16 @@ def _display_detailed_action_card(comprehensive_data):
                     )
                 
                 with col2:
+                    # ★修正点: 達成率を直近週データで再計算して表示
+                    target = basic_info.get('census_target', 0)
+                    recent_census = basic_info.get('recent_week_census', 0)
+                    recalculated_ach = (recent_census / target * 100) if target > 0 else 0
+                    status_emoji = "✅" if recalculated_ach >= 95 else "❌"
+                    
                     st.metric(
                         "達成率",
-                        f"{basic_info['census_achievement']:.1f}%",
-                        analysis['census_status']
+                        f"{recalculated_ach:.1f}%",
+                        status_emoji
                     )
                 
                 with col3:
