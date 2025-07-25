@@ -1504,10 +1504,11 @@ def generate_performance_dashboard_html(df, target_data, period, dashboard_type)
                 
                 # ★ 修正箇所 2: ソートロジックを堅牢化
                 opt = metric_opts[metric_name]
-                # このブロックで処理される指標はすべて降順ソートで良いため、revをTrueに固定
-                rev = True
-                kpi_list.sort(key=lambda x: x.get(opt["ach"], 0), reverse=rev)
-                
+                # 表示される達成率（直近週実績ベース）でソートするように修正
+                kpi_list.sort(
+                    key=lambda kpi: (kpi.get(opt['recent'], 0) / kpi.get(opt['target']) * 100) if kpi.get(opt['target']) else 0,
+                    reverse=True
+                )
                 metrics_data_dict[metric_name] = kpi_list
         
         # アクション提案データの生成（変更なし）
