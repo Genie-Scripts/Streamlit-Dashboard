@@ -1502,13 +1502,12 @@ def generate_performance_dashboard_html(df, target_data, period, dashboard_type)
                     if kpi:
                         kpi_list.append(kpi)
                 
-                # ★ 修正箇所 2: ソートロジックを堅牢化
+                # 指標に応じたソートキーを取得
                 opt = metric_opts[metric_name]
-                # このブロックで処理される指標はすべて降順ソートで良いため、revをTrueに固定
-                rev = True
-                kpi_list.sort(key=lambda x: x.get(opt["ach"], 0), reverse=rev)
-                
-                metrics_data_dict[metric_name] = kpi_list
+                # 達成率(achievement)の降順(reverse=True)でリストをソート
+                kpi_list.sort(key=lambda x: x.get(opt["ach"], 0), reverse=True)
+                # ▲▲▲【ここまで修正・追加】▲▲▲
+ 
         
         # アクション提案データの生成（変更なし）
         from department_performance_tab import evaluate_feasibility, calculate_effect_simulation, decide_action_and_reasoning
