@@ -1,0 +1,31 @@
+{
+  "metadata": [
+    {
+      "filename": "診療科別ハフォーマンス_20250728.html",
+      "button_name": "診療科別ハフォーマンス_20250728",
+      "short_description": "test",
+      "long_description": "",
+      "icon": "📊",
+      "category": "経営分析",
+      "tags": [],
+      "priority": 100,
+      "visible": true,
+      "update_frequency": "リアルタイム",
+      "responsible_person": "",
+      "data_source": "",
+      "last_updated": "2025-08-03T07:30:31.164021",
+      "custom_css_class": ""
+    }
+  ],
+  "config": {
+    "dashboard_title": "🏥 統合ダッシュボード",
+    "dashboard_subtitle": "すべてのレポートとダッシュボード",
+    "primary_color": "#667eea",
+    "secondary_color": "#764ba2",
+    "show_stats": true,
+    "footer_text": "© 2025 Dashboard System"
+  },
+  "last_updated": "2025-08-03T07:30:39.573052",
+  "total_dashboards": 1,
+  "visible_dashboards": 1
+}
