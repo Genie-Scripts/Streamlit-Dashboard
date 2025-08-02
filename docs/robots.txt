@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://Genie-Scripts.github.io/Streamlit-Dashboard/sitemap.xml
