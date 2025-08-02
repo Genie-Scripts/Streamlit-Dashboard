@@ -3,162 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏥 週報ダッシュボード</title>
+    <title>{config.get('dashboard_title', 'ダッシュボード')}</title>
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-58EZXED4D4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+
+      gtag('config', 'G-58EZXED4D4');
+    </script>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
-            background: #f2f2f7;
-            color: #1c1c1e;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
         }
+
         .header {
-            background: linear-gradient(180deg, #007AFF 0%, #5856D6 100%);
+            background: linear-gradient(135deg, {config.get('primary_color', '#667eea')} 0%, {config.get('secondary_color', '#764ba2')} 100%);
             color: white;
             padding: 60px 20px 40px;
             text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+
         .header h1 {
-            font-size: 2.2em;
+            font-size: 2.5em;
+            margin-bottom: 10px;
             font-weight: 700;
-            margin-bottom: 8px;
         }
+
         .header p {
+            font-size: 1.2em;
             opacity: 0.9;
-            font-size: 1.1em;
         }
-        .dashboard-list {
-            padding: 20px 16px;
-            max-width: 800px;
+
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 40px 20px;
         }
-        .dashboard-item {
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .dashboard-card {
             background: white;
             border-radius: 12px;
-            margin-bottom: 12px;
-            padding: 20px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             display: flex;
             align-items: center;
-            text-decoration: none;
-            color: inherit;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            transition: all 0.2s ease;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
         }
-        .dashboard-item:active {
-            transform: scale(0.98);
-            background: #f2f2f7;
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        .item-icon {
-            font-size: 2em;
-            margin-right: 16px;
-            width: 50px;
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, {config.get('primary_color', '#667eea')} 0%, {config.get('secondary_color', '#764ba2')} 100%);
+            transition: width 0.3s ease;
+        }
+
+        .dashboard-card:hover::before {
+            width: 8px;
+        }
+
+        .card-icon {
+            font-size: 3em;
+            min-width: 60px;
             text-align: center;
         }
-        .item-content {
+
+        .card-content {
             flex: 1;
         }
-        .item-content h3 {
-            font-size: 1.2em;
+
+        .card-content h3 {
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            color: #2d3748;
             font-weight: 600;
-            margin-bottom: 4px;
-            color: #1c1c1e;
         }
-        .item-content p {
-            color: #8e8e93;
-            font-size: 0.9em;
-            line-height: 1.4;
-            margin-bottom: 6px;
+
+        .card-content p {
+            color: #718096;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 10px;
         }
-        .update-badge {
+
+        .update-time {
+            font-size: 0.85em;
+            color: #a0aec0;
             display: inline-block;
-            background: #007AFF;
-            color: white;
-            font-size: 0.75em;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-weight: 500;
+            background: #f7fafc;
+            padding: 4px 10px;
+            border-radius: 20px;
         }
-        .item-arrow {
-            font-size: 1.8em;
-            color: #c7c7cc;
+
+        .card-arrow {
+            font-size: 2em;
+            color: #cbd5e0;
             margin-left: 10px;
         }
-        .footer-note {
+
+        .dashboard-card:hover .card-arrow {
+            color: {config.get('primary_color', '#667eea')};
+            transform: translateX(5px);
+            transition: all 0.3s ease;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .stat-box h4 {
+            color: #718096;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+
+        .stat-box .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: {config.get('primary_color', '#667eea')};
+        }
+
+        .footer {
             text-align: center;
             padding: 40px 20px;
-            color: #8e8e93;
-            font-size: 0.9em;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 60px;
         }
-        @media (min-width: 768px) {
-            .header { padding: 80px 40px 60px; }
-            .dashboard-list { max-width: 600px; }
-            .dashboard-item:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+
+        .footer p {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .dashboard-card {
+                padding: 20px;
+            }
+
+            .card-icon {
+                font-size: 2.5em;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
             }
         }
+
+        /* アニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dashboard-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .dashboard-card:nth-child(1) { animation-delay: 0.1s; }
+        .dashboard-card:nth-child(2) { animation-delay: 0.2s; }
+        .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
+        .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
     </style>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-58EZXED4D4"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-58EZXED4D4');
-    </script>
 </head>
 <body>
     <div class="header">
-        <h1>🏥 週報ダッシュボード</h1>
-        <p>入院/手術分析・スマートフォン横向き表示対応</p>
+        <h1>{config.get('header_icon', '🏥')} {config.get('dashboard_title', 'ダッシュボード')}</h1>
+        <p>{config.get('dashboard_subtitle', '統合ダッシュボード')}</p>
     </div>
-    
-    <div class="dashboard-list">
-        
-            <a href="department_dashboard.html" class="dashboard-item">
-                <div class="item-icon">📊</div>
-                <div class="item-content">
-                    <h3>診療科別パフォーマンス</h3>
-                    <p>各診療科の入院患者数、新入院患者数、平均在院日数の実績と目標達成率</p>
-                    <span class="update-badge">最新: 2025/07/31</span>
-                </div>
-                <div class="item-arrow">›</div>
-            </a>
+
+    <div class="container">
+        {f'''
+        <div class="stats-container">
+            <div class="stat-box">
+                <h4>総ダッシュボード数</h4>
+                <div class="stat-value">{len(html_files)}</div>
+            </div>
+            <div class="stat-box">
+                <h4>最終更新</h4>
+                <div class="stat-value">{datetime.now().strftime('%m/%d')}</div>
+            </div>
+            <div class="stat-box">
+                <h4>ステータス</h4>
+                <div class="stat-value">✅</div>
+            </div>
+        </div>
+        ''' if config.get('show_stats', True) else ''}
+
+        <div class="dashboard-grid">
             
-            <a href="ward_dashboard.html" class="dashboard-item">
-                <div class="item-icon">📊</div>
-                <div class="item-content">
-                    <h3>病棟別パフォーマンス</h3>
-                    <p>各病棟の入院患者数、新入院患者数、平均在院日数の実績と目標達成率</p>
-                    <span class="update-badge">最新: 2025/07/31</span>
+            <div class="dashboard-card" onclick="window.location.href='診療科別ハフォーマンス_20250728.html'">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <h3>診療科別ハフォーマンス_20250728</h3>
+                    <p>test</p>
+                    <span class="update-time">更新: 2025/08/03 07:30</span>
                 </div>
-                <div class="item-arrow">›</div>
-            </a>
+                <div class="card-arrow">›</div>
+            </div>
             
-            <a href="surgery_analysis.html" class="dashboard-item">
-                <div class="item-icon">🔗</div>
-                <div class="item-content">
-                    <h3>全身麻酔手術分析</h3>
-                    <p>全身麻酔手術件数の分析結果</p>
-                    <span class="update-badge">最新: 2025/07/31 22:40</span>
-                </div>
-                <div class="item-arrow">›</div>
-            </a>
-            
-            <a href="comprehensive_report_90days.html" class="dashboard-item">
-                <div class="item-icon">🔗</div>
-                <div class="item-content">
-                    <h3>90日間総合レポート</h3>
-                    <p>全体・診療科・病棟別の詳細グラフ</p>
-                    <span class="update-badge">最新: 2025/07/31 22:40</span>
-                </div>
-                <div class="item-arrow">›</div>
-            </a>
-            
+        </div>
     </div>
-    
-    <div class="footer-note">
-        <p>🏥 経営企画室</p>
-        
-        <p>最終更新: 2025年07月31日 22時40分</p>
+
+    <div class="footer">
+        <p>{config.get('footer_text', '© 2025 Dashboard System')}</p>
+        <p>最終更新: {datetime.now().strftime('%Y年%m月%d日 %H:%M:%S')}</p>
     </div>
 </body>
 </html>
