@@ -13,7 +13,7 @@
       "update_frequency": "リアルタイム",
       "responsible_person": "",
       "data_source": "",
-      "last_updated": "2025-08-03T07:30:31.164021",
+      "last_updated": "2025-08-03T08:32:28.996023",
       "custom_css_class": ""
     }
   ],
@@ -25,7 +25,7 @@
     "show_stats": true,
     "footer_text": "© 2025 Dashboard System"
   },
-  "last_updated": "2025-08-03T07:30:39.573052",
+  "last_updated": "2025-08-03T08:32:43.353329",
   "total_dashboards": 1,
   "visible_dashboards": 1
 }
