@@ -2,8 +2,8 @@
   "metadata": [
     {
       "filename": "診療科別ハフォーマンス_20250728.html",
-      "button_name": "診療科別ハフォーマンス_20250728",
-      "short_description": "test",
+      "button_name": "診療科別パフォーマンス",
+      "short_description": "パフォーマンス",
       "long_description": "",
       "icon": "📊",
       "category": "経営分析",
@@ -13,7 +13,7 @@
       "update_frequency": "リアルタイム",
       "responsible_person": "",
       "data_source": "",
-      "last_updated": "2025-08-03T08:32:28.996023",
+      "last_updated": "2025-08-03T08:42:16.725428",
       "custom_css_class": ""
     }
   ],
@@ -25,7 +25,7 @@
     "show_stats": true,
     "footer_text": "© 2025 Dashboard System"
   },
-  "last_updated": "2025-08-03T08:32:43.353329",
+  "last_updated": "2025-08-03T08:42:37.456759",
   "total_dashboards": 1,
   "visible_dashboards": 1
 }
