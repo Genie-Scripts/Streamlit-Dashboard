@@ -1045,6 +1045,34 @@
 
         /* --- Information Panel & Button Styles (Unified) --- */
         
+        /* === ポータルへ戻るボタン === */
+        .portal-home-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #5b5fde, #4a4fc7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        
+        .portal-home-button:hover {
+            background: linear-gradient(135deg, #4a4fc7, #5b5fde);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
         /* 情報パネル本体 */
         .info-panel {
             display: none;
@@ -1172,9 +1200,15 @@
         /* 小サイズ画面 (スマートフォンなど) */
         @media (max-width: 480px) {
             .header {
-                /* ボタンがタイトル下に来るため、padding-rightは不要 */
-                padding: 20px !important;
+                /* ボタンがタイトル下に来るため、padding調整 */
+                padding: 60px 20px 20px 20px !important;
                 text-align: center;
+            }
+            .portal-home-button {
+                top: 15px;
+                left: 15px;
+                padding: 8px 16px;
+                font-size: 12px;
             }
             .info-button {
                 /* 絶対配置を解除し、通常のブロック要素として振る舞わせる */

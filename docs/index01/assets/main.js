@@ -1,5 +1,5 @@
 
-// main.js (情報パネル対応・一覧表示対応版)
+// main.js (情報パネル対応版)
 document.addEventListener('DOMContentLoaded', () => {
     const dynamicContent = document.getElementById('dynamic-content');
     const deptSelector = document.getElementById('dept-selector');
@@ -98,32 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => {
             quickButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            
             const fragment = button.dataset.fragment;
             const selectorId = button.dataset.selector;
-            
-            // セレクターの表示・非表示
             deptSelector.style.display = selectorId === 'dept-selector' ? 'flex' : 'none';
             wardSelector.style.display = selectorId === 'ward-selector' ? 'flex' : 'none';
-            
-            // ★★★ ここから修正 ★★★
             if(selectorId) {
               document.getElementById(selectorId).value = "";
-              // セレクターボタンが押されたら、対応する一覧(サマリー)を読み込む
-              if (selectorId === 'dept-selector') {
-                  loadContent('fragments/dept-summary.html');
-              } else if (selectorId === 'ward-selector') {
-                  loadContent('fragments/ward-summary.html');
-              } else {
-                  dynamicContent.innerHTML = '<div class="placeholder">上記から項目を選択してください</div>';
-              }
+              dynamicContent.innerHTML = '<div class="placeholder">上記から項目を選択してください</div>';
             }
-            // ★★★ 修正ここまで ★★★
-            
             if (fragment) {
                 if (fragment.includes('view-all')) {
                     dynamicContent.innerHTML = initialContentHTML;
-                    // 必要ならresizePlots(dynamicContent);を呼び出す
+                    resizePlots(dynamicContent); 
                 } else {
                     loadContent(fragment);
                 }
@@ -136,13 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const fragment = selectedOption.dataset.fragment;
         if (fragment) {
             loadContent(fragment);
-        } else {
-            // ★★★ プルダウンで「項目を選択」に戻された場合、一覧を再表示 ★★★
-            if(event.target.id === 'dept-selector') {
-                loadContent('fragments/dept-summary.html');
-            } else if (event.target.id === 'ward-selector') {
-                loadContent('fragments/ward-summary.html');
-            }
         }
     };
     deptSelector.addEventListener('change', handleSelectChange);
