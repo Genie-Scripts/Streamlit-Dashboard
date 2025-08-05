@@ -1072,9 +1072,7 @@
 
         /* ヘッダーとボタンの位置を正しく定義 */
         .header {
-            /* 既存のスタイルに加えて、位置指定の基準であることを明記 */
             position: relative; 
-            /* ボタンのスペースを確保するために右側のパディングを調整 */
             padding-right: 250px !important;
         }
 
@@ -1107,13 +1105,10 @@
         }
 
         .info-button {
-            /* ヘッダー内での絶対配置を確定 */
             position: absolute !important; 
             top: 20px;
             right: 20px;
             z-index: 10;
-            
-            /* 見た目のスタイル */
             background: rgba(255, 255, 255, 0.9);
             color: #333;
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -1133,14 +1128,13 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        /* --- ▼▼▼ 機能復旧のための修正 ▼▼▼ --- */
         /* 情報パネル内のタブメニューのスタイル */
         .info-tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 25px;
             border-bottom: 2px solid #e5e7eb;
-            overflow-x: auto; /* ★重要：はみ出した場合に横スクロールを許可 */
+            overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             padding-bottom: 5px;
         }
@@ -1157,11 +1151,11 @@
             font-weight: 600;
             color: #4b5563;
             transition: all 0.3s;
-            white-space: nowrap; /* ★重要：タブ名を折り返さない */
-            flex-shrink: 0; /* ★重要：タブがコンテナに合わせて縮まないようにする */
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .info-tab.active {
-            color: #5b5fde; /* var(--primary-color) */
+            color: #5b5fde;
             border-bottom-color: #5b5fde;
         }
         .info-tab:hover {
@@ -1173,16 +1167,13 @@
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* --- ▲▲▲ 機能復旧のための修正 ▲▲▲ --- */
         
         /* --- レスポンシブ対応 --- */
-        
-        /* 中サイズ画面 (タブレットなど) */
         @media (max-width: 768px) {
             .header {
                 padding-right: 180px !important;
                 padding-left: 20px !important;
-                padding-top: 60px !important; /* ポータルボタン用スペース追加 */
+                padding-top: 60px !important;
                 padding-bottom: 30px !important;
             }
             .portal-home-button {
@@ -1191,9 +1182,7 @@
                 padding: 8px 16px;
                 font-size: 12px;
             }
-
             .header h1 {
-                 /* 元々のCSSで指定されている可能性のあるpaddingをリセット */
                 padding-right: 0 !important;
             }
             .info-button {
@@ -1203,16 +1192,12 @@
                 padding: 8px 16px;
             }
         }
-        
-        /* 小サイズ画面 (スマートフォンなど) */
         @media (max-width: 480px) {
             .header {
-                /* ボタンがタイトル下に来るため、padding調整 */
                 padding: 60px 20px 20px 20px !important;
                 text-align: center;
             }
             .portal-home-button {
-                /* モバイルでも絶対配置を維持 */
                 position: absolute !important;
                 top: 10px;
                 left: 50%;
@@ -1221,7 +1206,6 @@
                 font-size: 11px;
             }
             .info-button {
-                /* 情報ボタンは相対配置 */
                 position: relative !important; 
                 display: block;
                 margin: 15px auto 0;
