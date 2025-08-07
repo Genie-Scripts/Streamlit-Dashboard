@@ -1561,23 +1561,23 @@
         <div class="metric-card success">
             <div class="metric-title">📈 全身麻酔手術件数 年度比較</div>
             <div class="metric-row">
-                <span>今年度累計 (2025/04/01 - 2025/08/03)</span>
+                <span>今年度累計 (2025/04/01 - 2025/08/07)</span>
                 <span class="metric-value-row">1,591 件</span>
             </div>
             <div class="metric-row">
                 <span>昨年度同期</span>
-                <span class="metric-value-row">1,426 件</span>
+                <span class="metric-value-row">1,478 件</span>
             </div>
             <div class="metric-row">
                 <span>年度末予測</span>
-                <span class="metric-value-row">4,604 件</span>
+                <span class="metric-value-row">4,406 件</span>
             </div>
             <div class="achievement-row">
                 <span>前年度同期比</span>
-                <span>+165 件 (+11.6%)</span>
+                <span>+113 件 (+7.6%)</span>
             </div>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: 100%;"></div>
+                <div class="progress-fill" style="width: 76.45466847090663%;"></div>
             </div>
         </div>
         
@@ -1607,7 +1607,7 @@
     
                 
             <div class="trend-chart">
-                <h3>📈 月別推移（全身麻酔手術件数 - 過去6ヶ月）</h3>
+                <h3>📈 月別推移（全身麻酔手術件数 - 直近12ヶ月）</h3>
                 <div style="position: relative; height: 300px; margin: 20px 0;">
                     <canvas id="monthlyTrendChart"></canvas>
                 </div>
@@ -1627,11 +1627,11 @@
                     }
                     
                     const chartData = {
-                        labels: ["25年3月", "25年4月", "25年5月", "25年6月", "25年7月", "25年8月 (2日時点)"],
+                        labels: ["24年8月", "24年9月", "24年10月", "24年11月", "24年12月", "25年1月", "25年2月", "25年3月", "25年4月", "25年5月", "25年6月", "25年7月"],
                         datasets: [
                             {
                                 label: '当月実績',
-                                data: [373, 373, 393, 384, 419, 22],
+                                data: [396, 346, 404, 364, 399, 390, 358, 373, 373, 393, 384, 419],
                                 borderColor: 'rgb(102, 126, 234)',
                                 backgroundColor: 'rgba(102, 126, 234, 0.1)',
                                 borderWidth: 3,
@@ -1640,7 +1640,7 @@
                             },
                             {
                                 label: '前年同月実績',
-                                data: [345, 345, 338, 328, 381, 34],
+                                data: [362, 344, 299, 344, 351, 318, 342, 345, 345, 338, 328, 381],
                                 borderColor: 'rgb(156, 163, 175)',
                                 backgroundColor: 'rgba(156, 163, 175, 0.1)',
                                 borderWidth: 2,
@@ -1651,7 +1651,7 @@
                             },
                             {
                                 label: '目標ライン',
-                                data: [420, 420, 420, 420, 420, 420],
+                                data: [420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420],
                                 borderColor: 'rgb(255, 152, 0)',
                                 borderWidth: 2,
                                 borderDash: [10, 5],
@@ -1689,8 +1689,8 @@
                         scales: {
                             y: {
                                 display: true,
-                                suggestedMin: 0,
-                                suggestedMax: 479,
+                                suggestedMin: 280,
+                                suggestedMax: 438,
                                 grid: {
                                     color: 'rgba(0, 0, 0, 0.05)'
                                 },
@@ -2255,7 +2255,7 @@
                 <div class="metric-title">📊 統合パフォーマンス指標</div>
                 <div class="metric-row">
                     <span>年度成長率</span>
-                    <span class="metric-value-row">+11.6%</span>
+                    <span class="metric-value-row">+7.6%</span>
                 </div>
                 <div class="metric-row">
                     <span>手術室稼働率</span>
@@ -2263,7 +2263,7 @@
                 </div>
                 <div class="metric-row">
                     <span>年度末予測</span>
-                    <span class="metric-value-row">4,604件</span>
+                    <span class="metric-value-row">4,406件</span>
                 </div>
                 <div class="achievement-row">
                     <span>総合評価</span>
@@ -2280,9 +2280,9 @@
             <div class="analysis-card success">
                 <h3>✅ 年度目標達成状況</h3>
                 <ul>
-                    <li>前年度同期比+11.6%の順調な増加</li>
+                    <li>前年度同期比+7.6%の順調な増加</li>
                     <li>手術室稼働率64.4%は改善余地あり</li>
-                    <li>年度末予測4,604件は過去最高水準</li>
+                    <li>年度末予測4,406件の実現を目指す</li>
                     <li>継続的な成長基調を維持</li>
                 </ul>
             </div>
@@ -2294,7 +2294,7 @@
                     <li>手術室稼働率を85%以上に向上させる</li>
                     <li>診療科間の手術枠最適化を実施する</li>
                     <li>緊急手術体制の強化を検討する</li>
-                    <li>年度末目標：4,742件を目指す</li>
+                    <li>年度末目標：4,538件を目指す</li>
                     <li>現在の成長ペースを維持する</li>
                 </ul>
             </div>
@@ -2351,7 +2351,7 @@
         
     
         <div class="footer">
-            <div>生成日時: 2025年08月05日</div>
+            <div>生成日時: 2025年08月07日</div>
             <div>手術分析ダッシュボード v2.0</div>
         </div>
         
