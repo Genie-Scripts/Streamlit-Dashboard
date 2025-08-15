@@ -1,5 +1,6 @@
 
 // main.js (初期表示自動化・リサイズ安定化版)
+// main.js (初期表示自動化・リサイズ安定化版 + 情報パネル機能追加)
 document.addEventListener('DOMContentLoaded', () => {
     const dynamicContent = document.getElementById('dynamic-content');
     const deptSelector = document.getElementById('dept-selector');
@@ -109,61 +110,91 @@ document.addEventListener('DOMContentLoaded', () => {
             const fragment = button.dataset.fragment;
             const selectorId = button.dataset.selector;
             
-            if (deptSelector) deptSelector.style.display = selectorId === 'dept-selector' ? 'flex' : 'none';
-            if (wardSelector) wardSelector.style.display = selectorId === 'ward-selector' ? 'flex' : 'none';
+            if (deptSelector) deptSelector.style.display = selectorId === 'dept-selector' ? 'block' : 'none';
+            if (wardSelector) wardSelector.style.display = selectorId === 'ward-selector' ? 'block' : 'none';
             
-            if (selectorId) {
-                // セレクターボタンが押されたら、対応するサマリー(一覧)を読み込む
-                if (selectorId === 'dept-selector' && deptSelector) {
-                    deptSelector.value = ""; // ドロップダウンをリセット
-                    loadContent('fragments/dept-summary.html');
-                } else if (selectorId === 'ward-selector' && wardSelector) {
-                    wardSelector.value = ""; // ドロップダウンをリセット
-                    loadContent('fragments/ward-summary.html');
-                }
-            } else if (fragment) {
-                // それ以外のボタンは通常通りフラグメントを読み込む
-                loadContent(fragment);
+            if (!selectorId) {
+                if (deptSelector) deptSelector.selectedIndex = 0;
+                if (wardSelector) wardSelector.selectedIndex = 0;
             }
+            
+            if (fragment) loadContent(fragment);
         });
     });
-    
-    // セレクトボックスのイベントリスナー
-    const handleSelectChange = (event) => {
-        const selectedOption = event.target.options[event.target.selectedIndex];
+
+    // セレクタのイベントリスナー設定
+    const handleSelectorChange = (selector) => {
+        const selectedOption = selector.options[selector.selectedIndex];
         const fragment = selectedOption.dataset.fragment;
-        if (fragment) {
-            loadContent(fragment);
-        }
+        if (fragment) loadContent(fragment);
     };
-    
-    if (deptSelector) deptSelector.addEventListener('change', handleSelectChange);
-    if (wardSelector) wardSelector.addEventListener('change', handleSelectChange);
 
-    // ===== 初期表示実行 =====
-    // デバッグ: ボタンの情報を出力
-    console.log('利用可能なクイックボタン:');
-    quickButtons.forEach((btn, index) => {
-        console.log(`ボタン${index + 1}: テキスト="${btn.textContent}", data-fragment="${btn.dataset.fragment}"`);
-    });
+    if (deptSelector) {
+        deptSelector.addEventListener('change', () => handleSelectorChange(deptSelector));
+    }
     
-    // DOMContentLoaded直後に病院全体を表示
-    initializeDefaultView();
+    if (wardSelector) {
+        wardSelector.addEventListener('change', () => handleSelectorChange(wardSelector));
+    }
 
-    // ウィンドウリサイズ時の再描画（debounce処理）
+    // ウィンドウリサイズ時にグラフをリサイズ
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            resizePlots(document.getElementById('dynamic-content'));
-        }, 250);
+        resizeTimer = setTimeout(() => resizePlots(dynamicContent), 250);
+    });
+
+    // ===== ここで初期表示を実行 =====
+    initializeDefaultView();
+});
+
+// ===== 情報パネル関連の関数 =====
+// toggleInfoPanel関数をグローバルスコープに定義
+window.toggleInfoPanel = function() {
+    const infoPanel = document.getElementById('info-panel');
+    if (infoPanel) {
+        const isActive = infoPanel.classList.contains('active');
+        if (isActive) {
+            infoPanel.classList.remove('active');
+            infoPanel.style.display = 'none';
+        } else {
+            infoPanel.classList.add('active');
+            infoPanel.style.display = 'block';
+        }
+    } else {
+        console.warn('情報パネル(#info-panel)が見つかりません');
+    }
+};
+
+// showInfoTab関数をグローバルスコープに定義
+window.showInfoTab = function(tabName) {
+    // すべてのタブボタンとタブパネルを取得
+    const tabButtons = document.querySelectorAll('.info-tab');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    // すべてのタブボタンから active クラスを削除
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
     });
     
-    // ===== 追加: ページ表示後の確実な描画 =====
-    // window.onloadでも再度チャートをリサイズ（念のため）
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            resizePlots(document.getElementById('dynamic-content'));
-        }, 500);
+    // すべてのタブパネルから active クラスを削除
+    tabPanes.forEach(pane => {
+        pane.classList.remove('active');
     });
-});
+    
+    // 指定されたタブのボタンとパネルに active クラスを追加
+    const targetButton = Array.from(tabButtons).find(btn => 
+        btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${tabName}'`)
+    );
+    const targetPane = document.getElementById(`${tabName}-tab`);
+    
+    if (targetButton) {
+        targetButton.classList.add('active');
+    }
+    
+    if (targetPane) {
+        targetPane.classList.add('active');
+    } else {
+        console.warn(`タブパネル '${tabName}-tab' が見つかりません`);
+    }
+};
