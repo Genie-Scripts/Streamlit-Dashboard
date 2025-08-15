@@ -113,22 +113,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (wardSelector) wardSelector.style.display = selectorId === 'ward-selector' ? 'flex' : 'none';
             
             if (selectorId) {
-                const placeholder = (type) => `<div class="placeholder-content">
-                    <h2>${type}別年度比較</h2>
-                    <p>上のプルダウンから選択してください。</p>
-                    <div class="placeholder-icon">📊</div>
-                </div>`;
-                
+                // セレクターボタンが押されたら、対応するサマリー(一覧)を読み込む
                 if (selectorId === 'dept-selector' && deptSelector) {
-                    deptSelector.value = "";
-                    dynamicContent.innerHTML = placeholder('診療科');
+                    deptSelector.value = ""; // ドロップダウンをリセット
+                    loadContent('fragments/dept-summary.html');
                 } else if (selectorId === 'ward-selector' && wardSelector) {
-                    wardSelector.value = "";
-                    dynamicContent.innerHTML = placeholder('病棟');
+                    wardSelector.value = ""; // ドロップダウンをリセット
+                    loadContent('fragments/ward-summary.html');
                 }
-            }
-            
-            if (fragment) {
+            } else if (fragment) {
+                // それ以外のボタンは通常通りフラグメントを読み込む
                 loadContent(fragment);
             }
         });
