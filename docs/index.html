@@ -67,7 +67,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             display: flex;
             align-items: center;
-            gap: 20px;
+            /* gap: 20px; ← アイコンとの間隔を削除 */
             position: relative;
             overflow: hidden;
         }
@@ -88,11 +88,15 @@
         .dashboard-card:hover::before {
             width: 8px;
         }
+        /* ▼▼▼ 不要になった .card-icon のスタイルを削除 ▼▼▼ */
+        /*
         .card-icon {
             font-size: 3em;
             min-width: 60px;
             text-align: center;
         }
+        */
+        /* ▲▲▲ 不要になった .card-icon のスタイルを削除 ▲▲▲ */
         .card-content {
             flex: 1;
         }
@@ -142,7 +146,7 @@
             .header h1 { font-size: 2em; }
             .dashboard-grid { grid-template-columns: 1fr; gap: 15px; }
             .dashboard-card { padding: 20px; }
-            .card-icon { font-size: 2.5em; }
+            /* .card-icon { font-size: 2.5em; } ← 不要なため削除 */
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -157,39 +161,39 @@
 </head>
 <body>
     <div class="header">
-        <h1>🏥 週報ダッシュボード</h1>
+        <h1>週報ダッシュボード</h1>
         <p>各種レポート</p>
-        <p class="header-update-time">最終更新: 2025年08月19日 08:00:22</p>
+        <p class="header-update-time">最終更新: 2025年08月20日 11:08:48</p>
     </div>
     <div class="container">
         <div class="dashboard-grid">
             
             <div class="dashboard-card" onclick="window.location.href='https://genie-scripts.github.io/Streamlit-Dashboard/index01/'">
-                <div class="card-icon">🏥</div>
+                
                 <div class="card-content">
                     <h3>入院分析レポート</h3>
                     <p>過去12週間の入院患者数や在院日数のトレンドを分析</p>
-                    <span class="update-time">更新: 2025/08/19 08:00</span>
+                    <span class="update-time">更新: 2025/08/20 11:08</span>
                 </div>
                 <div class="card-arrow">›</div>
             </div>
             
             <div class="dashboard-card" onclick="window.location.href='https://genie-scripts.github.io/Streamlit-Dashboard/index02/'">
-                <div class="card-icon">📊</div>
+                
                 <div class="card-content">
                     <h3>手術分析レポート</h3>
                     <p>過去12週間の全身麻酔手術件数のトレンドを分析</p>
-                    <span class="update-time">更新: 2025/08/19 08:00</span>
+                    <span class="update-time">更新: 2025/08/20 11:08</span>
                 </div>
                 <div class="card-arrow">›</div>
             </div>
             
             <div class="dashboard-card" onclick="window.location.href='https://genie-scripts.github.io/Streamlit-Dashboard/index03/'">
-                <div class="card-icon">💰</div>
+                
                 <div class="card-content">
                     <h3>粗利レポート</h3>
                     <p>過去6ヵ月間の入院・外来粗利のトレンドを分析</p>
-                    <span class="update-time">更新: 2025/08/19 08:00</span>
+                    <span class="update-time">更新: 2025/08/20 11:08</span>
                 </div>
                 <div class="card-arrow">›</div>
             </div>
@@ -198,7 +202,7 @@
     </div>
     <div class="footer">
         <p>経営企画室 2025</p>
-        <p>ページ生成日時: 2025年08月19日 08:00:22</p>
+        <p>ページ生成日時: 2025年08月20日 11:08:48</p>
     </div>
 </body>
 </html>
