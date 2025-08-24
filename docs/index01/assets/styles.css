@@ -1092,6 +1092,9 @@
     /* ヘッダーとボタンの位置を正しく定義 */
     .header {
         position: relative; 
+        /* ▼▼▼ 修正点 ▼▼▼ */
+        padding-left: 180px !important; /* ボタンが他の要素と重ならないように左に余白を追加 */
+        /* ▲▲▲ 修正点 ▲▲▲ */
         padding-right: 250px !important;
     }
 
