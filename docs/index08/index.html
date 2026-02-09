@@ -160,6 +160,43 @@
                 color: #991B1B;
             }
             
+            /* タブナビゲーション（スマホのみ） */
+            .tab-navigation {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                max-width: 1200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .tab-button {
+                flex: 1;
+                padding: 12px;
+                background: white;
+                border: 2px solid #E5E7EB;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: clamp(0.85rem, 2vw, 1rem);
+                cursor: pointer;
+                transition: all 0.3s;
+                color: #6B7280;
+            }
+            .tab-button.active {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+            .tab-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            
+            @media (min-width: 768px) {
+                .tab-navigation {
+                    display: none;
+                }
+            }
+            
             .container { 
                 display: flex; 
                 flex-direction: column;
@@ -184,6 +221,26 @@
             @media (min-width: 768px) {
                 .column {
                     padding: 20px;
+                }
+            }
+            
+            /* スマホではタブで切り替え */
+            @media (max-width: 767px) {
+                .column {
+                    display: none;
+                }
+                .column.active {
+                    display: block;
+                }
+            }
+            
+            /* PCでは期間2を左、期間1を右に */
+            @media (min-width: 768px) {
+                .column.period-2 {
+                    order: 1;
+                }
+                .column.period-1 {
+                    order: 2;
                 }
             }
             .col-title { 
@@ -363,7 +420,7 @@
         <div class="header">
             <h1>🏥 手術運営 期間比較レポート</h1>
             <p>分析対象: <strong>全身麻酔のみ</strong></p>
-            <div class="update-time">📅 レポート作成日時: 2026年02月09日 07:40</div>
+            <div class="update-time">📅 レポート作成日時: 2026年02月09日 08:58</div>
             <div>
                 <a href="../index.html" class="portal-btn">📊 ポータルに戻る</a>
                 <button onclick="window.print()" class="print-btn">🖨️ 印刷/PDF保存</button>
@@ -417,51 +474,19 @@
             </div>
         </div>
         
+        <!-- タブナビゲーション（スマホのみ表示） -->
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="switchTab('period2')">
+                📅 期間2（最新）
+            </button>
+            <button class="tab-button" onclick="switchTab('period1')">
+                📅 期間1（過去）
+            </button>
+        </div>
+        
         <div class="container">
-            <div class="column">
-                <div class="col-title">📅 期間1: 2024-04-01〜2025-03-31</div>
-                <div class="col-subtitle">
-                    トレンド: <span class="trend-badge flat">→ 横ばい</span>
-                </div>
-                <div class="data-info">
-                    📋 分析対象: 243平日のデータ
-                </div>
-                <div class="grid">
-                    <div class="metric">
-                        <div class="metric-label">平日平均件数</div>
-                        <div class="metric-value">17.9 件</div>
-                    </div>
-                    <div class="metric alert">
-                        <div class="metric-label">目標達成率</div>
-                        <div class="metric-value danger">
-                            85.2%
-                        </div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">2月 実績</div>
-                        <div class="metric-value">358 件</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">年度 実績</div>
-                        <div class="metric-value">4422 件</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">時間内稼働率</div>
-                        <div class="metric-value">53.7%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">時間外比率</div>
-                        <div class="metric-value">8.2%</div>
-                    </div>
-                </div>
-                <div class="chart-box">
-                    <div class="chart-title">📈 推移グラフ (移動平均)
-                        <div class="chart-hint">💡 スマホ: ピンチで拡大、ダブルタップでリセット</div>
-                    </div>
-                    <canvas id="chart1"></canvas>
-                </div>
-            </div>
-            <div class="column">
+            <!-- 期間2（PCでは左、スマホではデフォルト表示） -->
+            <div class="column period-2 active">
                 <div class="col-title">📅 期間2: 2025-04-01〜2026-02-08</div>
                 <div class="col-subtitle">
                     トレンド: <span class="trend-badge flat">→ 横ばい</span>
@@ -504,10 +529,72 @@
                     <canvas id="chart2"></canvas>
                 </div>
             </div>
+            
+            <!-- 期間1（PCでは右、スマホでは非表示） -->
+            <div class="column period-1">
+                <div class="col-title">📅 期間1: 2024-04-01〜2025-03-31</div>
+                <div class="col-subtitle">
+                    トレンド: <span class="trend-badge flat">→ 横ばい</span>
+                </div>
+                <div class="data-info">
+                    📋 分析対象: 243平日のデータ
+                </div>
+                <div class="grid">
+                    <div class="metric">
+                        <div class="metric-label">平日平均件数</div>
+                        <div class="metric-value">17.9 件</div>
+                    </div>
+                    <div class="metric alert">
+                        <div class="metric-label">目標達成率</div>
+                        <div class="metric-value danger">
+                            85.2%
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">2月 実績</div>
+                        <div class="metric-value">358 件</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">年度 実績</div>
+                        <div class="metric-value">4422 件</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">時間内稼働率</div>
+                        <div class="metric-value">53.7%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">時間外比率</div>
+                        <div class="metric-value">8.2%</div>
+                    </div>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">📈 推移グラフ (移動平均)
+                        <div class="chart-hint">💡 スマホ: ピンチで拡大、ダブルタップでリセット</div>
+                    </div>
+                    <canvas id="chart1"></canvas>
+                </div>
+            </div>
         </div>
         <script>
             // ローディング表示
             document.getElementById('loading').classList.add('show');
+            
+            // タブ切り替え機能
+            function switchTab(period) {
+                const buttons = document.querySelectorAll('.tab-button');
+                const columns = document.querySelectorAll('.column');
+                
+                buttons.forEach(btn => btn.classList.remove('active'));
+                columns.forEach(col => col.classList.remove('active'));
+                
+                if (period === 'period2') {
+                    buttons[0].classList.add('active');
+                    document.querySelector('.period-2').classList.add('active');
+                } else {
+                    buttons[1].classList.add('active');
+                    document.querySelector('.period-1').classList.add('active');
+                }
+            }
             
             const targetVal = 21;
             
