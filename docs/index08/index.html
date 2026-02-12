@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-        <title>🏥 手術運営 期間比較レポート</title>
+        <title>🏥 全身麻酔手術レポート年度版</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -475,15 +475,162 @@
             .loading.show {
                 display: block;
             }
+            /* ── 診療科パフォーマンスセクション ── */
+            .dept-section {
+                max-width: 1200px;
+                margin: 0 auto 24px;
+                background: white;
+                padding: 20px 24px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            }
+            .dept-section-title {
+                font-size: clamp(1rem, 2.5vw, 1.2rem);
+                font-weight: bold;
+                color: #1D4ED8;
+                margin-bottom: 6px;
+            }
+            .dept-section-subtitle {
+                font-size: clamp(0.72rem, 1.6vw, 0.82rem);
+                color: #6B7280;
+                margin-bottom: 16px;
+            }
+            .dept-tabs {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 16px;
+            }
+            .dept-tab-btn {
+                padding: 6px 18px;
+                border-radius: 20px;
+                border: 2px solid #3B82F6;
+                background: white;
+                color: #3B82F6;
+                font-weight: bold;
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .dept-tab-btn.active {
+                background: #3B82F6;
+                color: white;
+            }
+            .dept-panel {
+                display: none;
+            }
+            .dept-panel.active {
+                display: block;
+            }
+            .dept-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 9px;
+                min-height: 32px;
+            }
+            .dept-name {
+                flex: 0 0 110px;
+                font-size: clamp(0.75rem, 1.7vw, 0.88rem);
+                font-weight: 500;
+                color: #1F2937;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .dept-bar-wrap {
+                flex: 1;
+                position: relative;
+                height: 22px;
+                background: transparent;
+                border-radius: 4px;
+                overflow: visible;
+            }
+            .dept-bar-fill {
+                height: 100%;
+                border-radius: 4px;
+                transition: width 0.6s ease;
+                min-width: 2px;
+            }
+            .dept-bar-fill.achieved  { background: #10B981; }
+            .dept-bar-fill.near      { background: #F59E0B; }
+            .dept-bar-fill.below     { background: #EF4444; }
+            /* 目標フレーム: 縦線 */
+            .dept-target-line {
+                position: absolute;
+                top: -4px;
+                bottom: -4px;
+                width: 2px;
+                background: #1D4ED8;
+                z-index: 2;
+            }
+            /* 目標フレーム: 上横線 */
+            .dept-target-line::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -5px;
+                width: 12px;
+                height: 2px;
+                background: #1D4ED8;
+            }
+            /* 目標フレーム: 下横線 */
+            .dept-target-line::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: -5px;
+                width: 12px;
+                height: 2px;
+                background: #1D4ED8;
+            }
+            /* 実績/目標件数: 診療科名の右隣 */
+            .dept-act-tgt {
+                flex: 0 0 auto;
+                min-width: 140px;
+                font-size: clamp(0.72rem, 1.6vw, 0.82rem);
+                color: #374151;
+                white-space: nowrap;
+            }
+            /* 達成率: 右端 */
+            .dept-rate {
+                flex: 0 0 42px;
+                text-align: right;
+                font-size: clamp(0.72rem, 1.6vw, 0.82rem);
+                font-weight: bold;
+                color: #374151;
+                white-space: nowrap;
+            }
+            .dept-badge {
+                flex: 0 0 28px;
+                text-align: center;
+                font-size: 0.9rem;
+            }
+            .dept-legend {
+                display: flex;
+                gap: 16px;
+                margin-top: 10px;
+                font-size: 0.78rem;
+                color: #6B7280;
+                flex-wrap: wrap;
+            }
+            
+            @media print {
+                .dept-section {
+                    box-shadow: none;
+                    break-inside: avoid;
+                }
+                .dept-tabs { display: none; }
+                .dept-panel { display: block !important; }
+            }
         </style>
     </head>
     <body>
         <div class="loading" id="loading">読み込み中...</div>
         
         <div class="header">
-            <h1>🏥 手術運営 期間比較レポート</h1>
+            <h1>🏥 全身麻酔手術レポート年度版</h1>
             <p>分析対象: <strong>全身麻酔のみ</strong></p>
-            <div class="update-time">📅 レポート作成日時: 2026年02月12日 13:13</div>
+            <div class="update-time">📅 レポート作成日時: 2026年02月13日 07:21</div>
             <div>
                 <a href="../index.html" class="portal-btn">📊 ポータルに戻る</a>
                 <button onclick="window.print()" class="print-btn">🖨️ 印刷/PDF保存</button>
@@ -497,21 +644,21 @@
                     <div class="comparison-item-label">平日平均件数の変化</div>
                     <div class="comparison-item-value">
                         +1.5 件
-                        <span class="diff-badge positive">+8.5%</span>
+                        <span class="diff-badge positive">+8.6%</span>
                     </div>
                 </div>
                 <div class="comparison-item positive">
                     <div class="comparison-item-label">月次実績の変化</div>
                     <div class="comparison-item-value">
                         +22 件
-                        <span class="diff-badge positive">+6.4%</span>
+                        <span class="diff-badge positive">+6.3%</span>
                     </div>
                 </div>
                 <div class="comparison-item positive">
                     <div class="comparison-item-label">年度予測の変化</div>
                     <div class="comparison-item-value">
-                        +376 件
-                        <span class="diff-badge positive">+8.5%</span>
+                        +378 件
+                        <span class="diff-badge positive">+8.6%</span>
                     </div>
                 </div>
                 <div class="comparison-item positive">
@@ -525,7 +672,7 @@
                     <div class="comparison-item-label">時間外比率の変化</div>
                     <div class="comparison-item-value">
                         +1.1%
-                        <span class="diff-badge negative">+13.2%</span>
+                        <span class="diff-badge negative">+13.1%</span>
                     </div>
                 </div>
                 <div class="comparison-item">
@@ -550,12 +697,12 @@
         <div class="container">
             <!-- 今年度（PCでは左、スマホではデフォルト表示） -->
             <div class="column period-2 active">
-                <div class="col-title">📅 今年度: 2025-04-01〜2026-02-11</div>
+                <div class="col-title">📅 今年度: 2025-04-01〜2026-02-12</div>
                 <div class="col-subtitle">
                     トレンド: <span class="trend-badge flat">→ 横ばい</span>
                 </div>
                 <div class="data-info">
-                    📋 分析対象: 210平日のデータ
+                    📋 分析対象: 211平日のデータ
                 </div>
                 <div class="grid">
                     <div class="metric">
@@ -565,7 +712,7 @@
                     <div class="metric alert">
                         <div class="metric-label">目標達成率</div>
                         <div class="metric-value danger">
-                            92.5%
+                            92.6%
                         </div>
                     </div>
                     <div class="metric">
@@ -574,7 +721,7 @@
                     </div>
                     <div class="metric">
                         <div class="metric-label">年度 予測</div>
-                        <div class="metric-value">4798 件</div>
+                        <div class="metric-value">4800 件</div>
                     </div>
                     <div class="metric">
                         <div class="metric-label">時間内稼働率</div>
@@ -641,6 +788,17 @@
         <script>
             // ローディング表示
             document.getElementById('loading').classList.add('show');
+            
+            // 診療科タブ切り替え
+            function switchDeptTab(w) {
+                document.querySelectorAll('.dept-tab-btn').forEach((b,i) => {
+                    b.classList.toggle('active',
+                        (i===0 && w==='7') || (i===1 && w==='28') || (i===2 && w==='fy'));
+                });
+                document.getElementById('dept-panel-7').classList.toggle('active',  w==='7');
+                document.getElementById('dept-panel-28').classList.toggle('active', w==='28');
+                document.getElementById('dept-panel-fy').classList.toggle('active', w==='fy');
+            }
             
             // タブ切り替え機能
             function switchTab(period) {
@@ -795,7 +953,7 @@
             // チャートを描画
             setTimeout(() => {
                 drawChart('chart1', [{"date_label":"04\/01","\u4ef6\u6570":17,"MA":17.0},{"date_label":"04\/02","\u4ef6\u6570":19,"MA":18.0},{"date_label":"04\/03","\u4ef6\u6570":18,"MA":18.0},{"date_label":"04\/04","\u4ef6\u6570":17,"MA":17.75},{"date_label":"04\/05","\u4ef6\u6570":17,"MA":17.6},{"date_label":"04\/08","\u4ef6\u6570":14,"MA":17.0},{"date_label":"04\/09","\u4ef6\u6570":15,"MA":16.7142857143},{"date_label":"04\/10","\u4ef6\u6570":11,"MA":16.0},{"date_label":"04\/11","\u4ef6\u6570":17,"MA":16.1111111111},{"date_label":"04\/12","\u4ef6\u6570":15,"MA":16.0},{"date_label":"04\/15","\u4ef6\u6570":14,"MA":15.8181818182},{"date_label":"04\/16","\u4ef6\u6570":14,"MA":15.6666666667},{"date_label":"04\/17","\u4ef6\u6570":18,"MA":15.8461538462},{"date_label":"04\/18","\u4ef6\u6570":15,"MA":15.7857142857},{"date_label":"04\/19","\u4ef6\u6570":16,"MA":15.8},{"date_label":"04\/22","\u4ef6\u6570":16,"MA":15.8125},{"date_label":"04\/23","\u4ef6\u6570":18,"MA":15.9411764706},{"date_label":"04\/24","\u4ef6\u6570":18,"MA":16.0555555556},{"date_label":"04\/25","\u4ef6\u6570":15,"MA":16.0},{"date_label":"04\/26","\u4ef6\u6570":17,"MA":16.05},{"date_label":"04\/30","\u4ef6\u6570":19,"MA":16.1904761905},{"date_label":"05\/01","\u4ef6\u6570":15,"MA":16.1363636364},{"date_label":"05\/02","\u4ef6\u6570":20,"MA":16.3043478261},{"date_label":"05\/07","\u4ef6\u6570":18,"MA":16.375},{"date_label":"05\/08","\u4ef6\u6570":20,"MA":16.52},{"date_label":"05\/09","\u4ef6\u6570":17,"MA":16.5384615385},{"date_label":"05\/10","\u4ef6\u6570":19,"MA":16.6296296296},{"date_label":"05\/13","\u4ef6\u6570":15,"MA":16.5714285714},{"date_label":"05\/14","\u4ef6\u6570":15,"MA":16.5172413793},{"date_label":"05\/15","\u4ef6\u6570":15,"MA":16.4666666667},{"date_label":"05\/16","\u4ef6\u6570":17,"MA":16.4666666667},{"date_label":"05\/17","\u4ef6\u6570":16,"MA":16.3666666667},{"date_label":"05\/20","\u4ef6\u6570":13,"MA":16.2},{"date_label":"05\/21","\u4ef6\u6570":17,"MA":16.2},{"date_label":"05\/22","\u4ef6\u6570":12,"MA":16.0333333333},{"date_label":"05\/23","\u4ef6\u6570":17,"MA":16.1333333333},{"date_label":"05\/24","\u4ef6\u6570":11,"MA":16.0},{"date_label":"05\/27","\u4ef6\u6570":13,"MA":16.0666666667},{"date_label":"05\/28","\u4ef6\u6570":14,"MA":15.9666666667},{"date_label":"05\/29","\u4ef6\u6570":16,"MA":16.0},{"date_label":"05\/30","\u4ef6\u6570":18,"MA":16.1333333333},{"date_label":"05\/31","\u4ef6\u6570":14,"MA":16.1333333333},{"date_label":"06\/03","\u4ef6\u6570":16,"MA":16.0666666667},{"date_label":"06\/04","\u4ef6\u6570":11,"MA":15.9333333333},{"date_label":"06\/05","\u4ef6\u6570":15,"MA":15.9},{"date_label":"06\/06","\u4ef6\u6570":10,"MA":15.7},{"date_label":"06\/07","\u4ef6\u6570":11,"MA":15.4666666667},{"date_label":"06\/10","\u4ef6\u6570":13,"MA":15.3},{"date_label":"06\/11","\u4ef6\u6570":19,"MA":15.4333333333},{"date_label":"06\/12","\u4ef6\u6570":17,"MA":15.4333333333},{"date_label":"06\/13","\u4ef6\u6570":20,"MA":15.4666666667},{"date_label":"06\/14","\u4ef6\u6570":21,"MA":15.6666666667},{"date_label":"06\/17","\u4ef6\u6570":19,"MA":15.6333333333},{"date_label":"06\/18","\u4ef6\u6570":19,"MA":15.6666666667},{"date_label":"06\/19","\u4ef6\u6570":19,"MA":15.6333333333},{"date_label":"06\/20","\u4ef6\u6570":20,"MA":15.7333333333},{"date_label":"06\/21","\u4ef6\u6570":12,"MA":15.5},{"date_label":"06\/24","\u4ef6\u6570":12,"MA":15.4},{"date_label":"06\/25","\u4ef6\u6570":17,"MA":15.4666666667},{"date_label":"06\/26","\u4ef6\u6570":14,"MA":15.4333333333},{"date_label":"06\/27","\u4ef6\u6570":18,"MA":15.4666666667},{"date_label":"06\/28","\u4ef6\u6570":18,"MA":15.5333333333},{"date_label":"07\/01","\u4ef6\u6570":13,"MA":15.5333333333},{"date_label":"07\/02","\u4ef6\u6570":18,"MA":15.5666666667},{"date_label":"07\/03","\u4ef6\u6570":16,"MA":15.7},{"date_label":"07\/04","\u4ef6\u6570":19,"MA":15.7666666667},{"date_label":"07\/05","\u4ef6\u6570":16,"MA":15.9333333333},{"date_label":"07\/08","\u4ef6\u6570":17,"MA":16.0666666667},{"date_label":"07\/09","\u4ef6\u6570":17,"MA":16.1666666667},{"date_label":"07\/10","\u4ef6\u6570":13,"MA":16.0666666667},{"date_label":"07\/11","\u4ef6\u6570":15,"MA":15.9666666667},{"date_label":"07\/12","\u4ef6\u6570":12,"MA":15.9},{"date_label":"07\/16","\u4ef6\u6570":20,"MA":16.0333333333},{"date_label":"07\/17","\u4ef6\u6570":15,"MA":16.1666666667},{"date_label":"07\/18","\u4ef6\u6570":19,"MA":16.3},{"date_label":"07\/19","\u4ef6\u6570":19,"MA":16.6},{"date_label":"07\/22","\u4ef6\u6570":20,"MA":16.9},{"date_label":"07\/23","\u4ef6\u6570":18,"MA":17.0666666667},{"date_label":"07\/24","\u4ef6\u6570":17,"MA":17.0},{"date_label":"07\/25","\u4ef6\u6570":23,"MA":17.2},{"date_label":"07\/26","\u4ef6\u6570":17,"MA":17.1},{"date_label":"07\/29","\u4ef6\u6570":19,"MA":17.0333333333},{"date_label":"07\/30","\u4ef6\u6570":19,"MA":17.0333333333},{"date_label":"07\/31","\u4ef6\u6570":13,"MA":16.8333333333},{"date_label":"08\/01","\u4ef6\u6570":16,"MA":16.7333333333},{"date_label":"08\/02","\u4ef6\u6570":18,"MA":16.6666666667},{"date_label":"08\/05","\u4ef6\u6570":19,"MA":16.9},{"date_label":"08\/06","\u4ef6\u6570":18,"MA":17.1},{"date_label":"08\/07","\u4ef6\u6570":15,"MA":17.0333333333},{"date_label":"08\/08","\u4ef6\u6570":20,"MA":17.2333333333},{"date_label":"08\/09","\u4ef6\u6570":23,"MA":17.4},{"date_label":"08\/13","\u4ef6\u6570":19,"MA":17.4333333333},{"date_label":"08\/14","\u4ef6\u6570":19,"MA":17.6333333333},{"date_label":"08\/15","\u4ef6\u6570":23,"MA":17.8},{"date_label":"08\/16","\u4ef6\u6570":22,"MA":18.0},{"date_label":"08\/19","\u4ef6\u6570":18,"MA":17.9666666667},{"date_label":"08\/20","\u4ef6\u6570":20,"MA":18.1},{"date_label":"08\/21","\u4ef6\u6570":18,"MA":18.1333333333},{"date_label":"08\/22","\u4ef6\u6570":20,"MA":18.2333333333},{"date_label":"08\/23","\u4ef6\u6570":16,"MA":18.3333333333},{"date_label":"08\/26","\u4ef6\u6570":18,"MA":18.4333333333},{"date_label":"08\/27","\u4ef6\u6570":17,"MA":18.6},{"date_label":"08\/28","\u4ef6\u6570":16,"MA":18.4666666667},{"date_label":"08\/29","\u4ef6\u6570":18,"MA":18.5666666667},{"date_label":"08\/30","\u4ef6\u6570":21,"MA":18.6333333333},{"date_label":"09\/02","\u4ef6\u6570":15,"MA":18.5},{"date_label":"09\/03","\u4ef6\u6570":17,"MA":18.4},{"date_label":"09\/04","\u4ef6\u6570":17,"MA":18.3666666667},{"date_label":"09\/05","\u4ef6\u6570":21,"MA":18.5},{"date_label":"09\/06","\u4ef6\u6570":16,"MA":18.2666666667},{"date_label":"09\/09","\u4ef6\u6570":17,"MA":18.2666666667},{"date_label":"09\/10","\u4ef6\u6570":15,"MA":18.1333333333},{"date_label":"09\/11","\u4ef6\u6570":18,"MA":18.1},{"date_label":"09\/12","\u4ef6\u6570":19,"MA":18.3},{"date_label":"09\/13","\u4ef6\u6570":18,"MA":18.3666666667},{"date_label":"09\/17","\u4ef6\u6570":15,"MA":18.2666666667},{"date_label":"09\/18","\u4ef6\u6570":13,"MA":18.0666666667},{"date_label":"09\/19","\u4ef6\u6570":24,"MA":18.2666666667},{"date_label":"09\/20","\u4ef6\u6570":22,"MA":18.5},{"date_label":"09\/24","\u4ef6\u6570":19,"MA":18.4666666667},{"date_label":"09\/25","\u4ef6\u6570":17,"MA":18.2666666667},{"date_label":"09\/26","\u4ef6\u6570":20,"MA":18.3},{"date_label":"09\/27","\u4ef6\u6570":18,"MA":18.2666666667},{"date_label":"09\/30","\u4ef6\u6570":18,"MA":18.1},{"date_label":"10\/01","\u4ef6\u6570":21,"MA":18.0666666667},{"date_label":"10\/02","\u4ef6\u6570":18,"MA":18.0666666667},{"date_label":"10\/03","\u4ef6\u6570":18,"MA":18.0},{"date_label":"10\/04","\u4ef6\u6570":17,"MA":17.9666666667},{"date_label":"10\/07","\u4ef6\u6570":18,"MA":17.9},{"date_label":"10\/08","\u4ef6\u6570":20,"MA":18.0333333333},{"date_label":"10\/09","\u4ef6\u6570":14,"MA":17.9},{"date_label":"10\/10","\u4ef6\u6570":19,"MA":17.9666666667},{"date_label":"10\/11","\u4ef6\u6570":18,"MA":18.0333333333},{"date_label":"10\/15","\u4ef6\u6570":18,"MA":18.0333333333},{"date_label":"10\/16","\u4ef6\u6570":21,"MA":18.0333333333},{"date_label":"10\/17","\u4ef6\u6570":18,"MA":18.1333333333},{"date_label":"10\/18","\u4ef6\u6570":20,"MA":18.2333333333},{"date_label":"10\/21","\u4ef6\u6570":15,"MA":18.1666666667},{"date_label":"10\/22","\u4ef6\u6570":17,"MA":18.0333333333},{"date_label":"10\/23","\u4ef6\u6570":16,"MA":18.0333333333},{"date_label":"10\/24","\u4ef6\u6570":16,"MA":18.0},{"date_label":"10\/25","\u4ef6\u6570":19,"MA":18.1333333333},{"date_label":"10\/28","\u4ef6\u6570":21,"MA":18.2333333333},{"date_label":"10\/29","\u4ef6\u6570":18,"MA":18.2},{"date_label":"10\/30","\u4ef6\u6570":15,"MA":18.1},{"date_label":"10\/31","\u4ef6\u6570":21,"MA":18.3},{"date_label":"11\/01","\u4ef6\u6570":16,"MA":18.4},{"date_label":"11\/05","\u4ef6\u6570":15,"MA":18.1},{"date_label":"11\/06","\u4ef6\u6570":19,"MA":18.0},{"date_label":"11\/07","\u4ef6\u6570":17,"MA":17.9333333333},{"date_label":"11\/08","\u4ef6\u6570":20,"MA":18.0333333333},{"date_label":"11\/11","\u4ef6\u6570":18,"MA":17.9666666667},{"date_label":"11\/12","\u4ef6\u6570":18,"MA":17.9666666667},{"date_label":"11\/13","\u4ef6\u6570":13,"MA":17.8},{"date_label":"11\/14","\u4ef6\u6570":18,"MA":17.7},{"date_label":"11\/15","\u4ef6\u6570":21,"MA":17.8},{"date_label":"11\/18","\u4ef6\u6570":20,"MA":17.8666666667},{"date_label":"11\/19","\u4ef6\u6570":23,"MA":18.0666666667},{"date_label":"11\/20","\u4ef6\u6570":19,"MA":18.1},{"date_label":"11\/21","\u4ef6\u6570":16,"MA":17.9666666667},{"date_label":"11\/22","\u4ef6\u6570":18,"MA":18.1},{"date_label":"11\/25","\u4ef6\u6570":20,"MA":18.1333333333},{"date_label":"11\/26","\u4ef6\u6570":14,"MA":18.0},{"date_label":"11\/27","\u4ef6\u6570":17,"MA":17.9666666667},{"date_label":"11\/28","\u4ef6\u6570":19,"MA":17.9},{"date_label":"11\/29","\u4ef6\u6570":19,"MA":17.9333333333},{"date_label":"12\/02","\u4ef6\u6570":17,"MA":17.8333333333},{"date_label":"12\/03","\u4ef6\u6570":19,"MA":17.9666666667},{"date_label":"12\/04","\u4ef6\u6570":19,"MA":18.0333333333},{"date_label":"12\/05","\u4ef6\u6570":15,"MA":18.0},{"date_label":"12\/06","\u4ef6\u6570":21,"MA":18.1666666667},{"date_label":"12\/09","\u4ef6\u6570":18,"MA":18.1333333333},{"date_label":"12\/10","\u4ef6\u6570":21,"MA":18.1333333333},{"date_label":"12\/11","\u4ef6\u6570":20,"MA":18.2},{"date_label":"12\/12","\u4ef6\u6570":18,"MA":18.3},{"date_label":"12\/13","\u4ef6\u6570":25,"MA":18.4333333333},{"date_label":"12\/16","\u4ef6\u6570":23,"MA":18.6666666667},{"date_label":"12\/17","\u4ef6\u6570":22,"MA":18.9},{"date_label":"12\/18","\u4ef6\u6570":20,"MA":18.9333333333},{"date_label":"12\/19","\u4ef6\u6570":23,"MA":19.1333333333},{"date_label":"12\/20","\u4ef6\u6570":26,"MA":19.3333333333},{"date_label":"12\/23","\u4ef6\u6570":17,"MA":19.3},{"date_label":"12\/24","\u4ef6\u6570":20,"MA":19.3666666667},{"date_label":"12\/25","\u4ef6\u6570":16,"MA":19.4666666667},{"date_label":"12\/26","\u4ef6\u6570":15,"MA":19.3666666667},{"date_label":"12\/27","\u4ef6\u6570":13,"MA":19.1},{"date_label":"01\/06","\u4ef6\u6570":18,"MA":19.0333333333},{"date_label":"01\/07","\u4ef6\u6570":19,"MA":18.9},{"date_label":"01\/08","\u4ef6\u6570":15,"MA":18.7666666667},{"date_label":"01\/09","\u4ef6\u6570":18,"MA":18.8333333333},{"date_label":"01\/10","\u4ef6\u6570":21,"MA":18.9333333333},{"date_label":"01\/14","\u4ef6\u6570":21,"MA":18.9666666667},{"date_label":"01\/15","\u4ef6\u6570":21,"MA":19.2},{"date_label":"01\/16","\u4ef6\u6570":22,"MA":19.3666666667},{"date_label":"01\/17","\u4ef6\u6570":24,"MA":19.5333333333},{"date_label":"01\/20","\u4ef6\u6570":21,"MA":19.6},{"date_label":"01\/21","\u4ef6\u6570":20,"MA":19.7},{"date_label":"01\/22","\u4ef6\u6570":20,"MA":19.7333333333},{"date_label":"01\/23","\u4ef6\u6570":22,"MA":19.8333333333},{"date_label":"01\/24","\u4ef6\u6570":22,"MA":20.0666666667},{"date_label":"01\/27","\u4ef6\u6570":19,"MA":20.0},{"date_label":"01\/28","\u4ef6\u6570":19,"MA":20.0333333333},{"date_label":"01\/29","\u4ef6\u6570":19,"MA":19.9666666667},{"date_label":"01\/30","\u4ef6\u6570":20,"MA":19.9666666667},{"date_label":"01\/31","\u4ef6\u6570":23,"MA":20.1333333333},{"date_label":"02\/03","\u4ef6\u6570":18,"MA":19.9},{"date_label":"02\/04","\u4ef6\u6570":18,"MA":19.7333333333},{"date_label":"02\/05","\u4ef6\u6570":20,"MA":19.6666666667},{"date_label":"02\/06","\u4ef6\u6570":22,"MA":19.7333333333},{"date_label":"02\/07","\u4ef6\u6570":21,"MA":19.6666666667},{"date_label":"02\/10","\u4ef6\u6570":19,"MA":19.4333333333},{"date_label":"02\/12","\u4ef6\u6570":17,"MA":19.4333333333},{"date_label":"02\/13","\u4ef6\u6570":20,"MA":19.4333333333},{"date_label":"02\/14","\u4ef6\u6570":23,"MA":19.6666666667},{"date_label":"02\/17","\u4ef6\u6570":23,"MA":19.9333333333},{"date_label":"02\/18","\u4ef6\u6570":23,"MA":20.2666666667},{"date_label":"02\/19","\u4ef6\u6570":18,"MA":20.2666666667},{"date_label":"02\/20","\u4ef6\u6570":16,"MA":20.1666666667},{"date_label":"02\/21","\u4ef6\u6570":15,"MA":20.1666666667},{"date_label":"02\/25","\u4ef6\u6570":20,"MA":20.2333333333},{"date_label":"02\/26","\u4ef6\u6570":19,"MA":20.1666666667},{"date_label":"02\/27","\u4ef6\u6570":22,"MA":20.2},{"date_label":"02\/28","\u4ef6\u6570":21,"MA":20.2},{"date_label":"03\/03","\u4ef6\u6570":17,"MA":20.0333333333},{"date_label":"03\/04","\u4ef6\u6570":13,"MA":19.6666666667},{"date_label":"03\/05","\u4ef6\u6570":17,"MA":19.5333333333},{"date_label":"03\/06","\u4ef6\u6570":19,"MA":19.5},{"date_label":"03\/07","\u4ef6\u6570":21,"MA":19.5333333333},{"date_label":"03\/10","\u4ef6\u6570":16,"MA":19.3333333333},{"date_label":"03\/11","\u4ef6\u6570":13,"MA":19.0333333333},{"date_label":"03\/12","\u4ef6\u6570":17,"MA":18.9666666667},{"date_label":"03\/13","\u4ef6\u6570":20,"MA":19.0},{"date_label":"03\/14","\u4ef6\u6570":20,"MA":19.0333333333},{"date_label":"03\/17","\u4ef6\u6570":25,"MA":19.2},{"date_label":"03\/18","\u4ef6\u6570":23,"MA":19.2},{"date_label":"03\/19","\u4ef6\u6570":18,"MA":19.2},{"date_label":"03\/21","\u4ef6\u6570":21,"MA":19.3},{"date_label":"03\/24","\u4ef6\u6570":15,"MA":19.1333333333},{"date_label":"03\/25","\u4ef6\u6570":16,"MA":18.9333333333},{"date_label":"03\/26","\u4ef6\u6570":19,"MA":18.8666666667},{"date_label":"03\/27","\u4ef6\u6570":19,"MA":18.8666666667},{"date_label":"03\/28","\u4ef6\u6570":20,"MA":18.9666666667},{"date_label":"03\/31","\u4ef6\u6570":15,"MA":18.8}]);
-                drawChart('chart2', [{"date_label":"04\/01","\u4ef6\u6570":16,"MA":16.0},{"date_label":"04\/02","\u4ef6\u6570":17,"MA":16.5},{"date_label":"04\/03","\u4ef6\u6570":18,"MA":17.0},{"date_label":"04\/04","\u4ef6\u6570":19,"MA":17.5},{"date_label":"04\/07","\u4ef6\u6570":18,"MA":17.6},{"date_label":"04\/08","\u4ef6\u6570":15,"MA":17.1666666667},{"date_label":"04\/09","\u4ef6\u6570":17,"MA":17.1428571429},{"date_label":"04\/10","\u4ef6\u6570":15,"MA":16.875},{"date_label":"04\/11","\u4ef6\u6570":16,"MA":16.7777777778},{"date_label":"04\/14","\u4ef6\u6570":18,"MA":16.9},{"date_label":"04\/15","\u4ef6\u6570":21,"MA":17.2727272727},{"date_label":"04\/16","\u4ef6\u6570":14,"MA":17.0},{"date_label":"04\/17","\u4ef6\u6570":22,"MA":17.3846153846},{"date_label":"04\/18","\u4ef6\u6570":14,"MA":17.1428571429},{"date_label":"04\/21","\u4ef6\u6570":15,"MA":17.0},{"date_label":"04\/22","\u4ef6\u6570":20,"MA":17.1875},{"date_label":"04\/23","\u4ef6\u6570":17,"MA":17.1764705882},{"date_label":"04\/24","\u4ef6\u6570":22,"MA":17.4444444444},{"date_label":"04\/25","\u4ef6\u6570":21,"MA":17.6315789474},{"date_label":"04\/28","\u4ef6\u6570":15,"MA":17.5},{"date_label":"04\/30","\u4ef6\u6570":18,"MA":17.5238095238},{"date_label":"05\/01","\u4ef6\u6570":20,"MA":17.6363636364},{"date_label":"05\/02","\u4ef6\u6570":19,"MA":17.6956521739},{"date_label":"05\/07","\u4ef6\u6570":20,"MA":17.7916666667},{"date_label":"05\/08","\u4ef6\u6570":19,"MA":17.84},{"date_label":"05\/09","\u4ef6\u6570":21,"MA":17.9615384615},{"date_label":"05\/12","\u4ef6\u6570":20,"MA":18.037037037},{"date_label":"05\/13","\u4ef6\u6570":21,"MA":18.1428571429},{"date_label":"05\/14","\u4ef6\u6570":17,"MA":18.1034482759},{"date_label":"05\/15","\u4ef6\u6570":23,"MA":18.2666666667},{"date_label":"05\/16","\u4ef6\u6570":19,"MA":18.3666666667},{"date_label":"05\/19","\u4ef6\u6570":15,"MA":18.3},{"date_label":"05\/20","\u4ef6\u6570":20,"MA":18.3666666667},{"date_label":"05\/21","\u4ef6\u6570":19,"MA":18.3666666667},{"date_label":"05\/22","\u4ef6\u6570":21,"MA":18.4666666667},{"date_label":"05\/23","\u4ef6\u6570":21,"MA":18.6666666667},{"date_label":"05\/26","\u4ef6\u6570":17,"MA":18.6666666667},{"date_label":"05\/27","\u4ef6\u6570":20,"MA":18.8333333333},{"date_label":"05\/28","\u4ef6\u6570":17,"MA":18.8666666667},{"date_label":"05\/29","\u4ef6\u6570":20,"MA":18.9333333333},{"date_label":"05\/30","\u4ef6\u6570":18,"MA":18.8333333333},{"date_label":"06\/02","\u4ef6\u6570":18,"MA":18.9666666667},{"date_label":"06\/03","\u4ef6\u6570":14,"MA":18.7},{"date_label":"06\/04","\u4ef6\u6570":17,"MA":18.8},{"date_label":"06\/05","\u4ef6\u6570":22,"MA":19.0333333333},{"date_label":"06\/06","\u4ef6\u6570":22,"MA":19.1},{"date_label":"06\/09","\u4ef6\u6570":14,"MA":19.0},{"date_label":"06\/10","\u4ef6\u6570":16,"MA":18.8},{"date_label":"06\/11","\u4ef6\u6570":17,"MA":18.6666666667},{"date_label":"06\/12","\u4ef6\u6570":19,"MA":18.8},{"date_label":"06\/13","\u4ef6\u6570":19,"MA":18.8333333333},{"date_label":"06\/16","\u4ef6\u6570":20,"MA":18.8333333333},{"date_label":"06\/17","\u4ef6\u6570":16,"MA":18.7333333333},{"date_label":"06\/18","\u4ef6\u6570":19,"MA":18.7},{"date_label":"06\/19","\u4ef6\u6570":23,"MA":18.8333333333},{"date_label":"06\/20","\u4ef6\u6570":16,"MA":18.6666666667},{"date_label":"06\/23","\u4ef6\u6570":17,"MA":18.5666666667},{"date_label":"06\/24","\u4ef6\u6570":15,"MA":18.3666666667},{"date_label":"06\/25","\u4ef6\u6570":16,"MA":18.3333333333},{"date_label":"06\/26","\u4ef6\u6570":21,"MA":18.2666666667},{"date_label":"06\/27","\u4ef6\u6570":23,"MA":18.4},{"date_label":"06\/30","\u4ef6\u6570":15,"MA":18.4},{"date_label":"07\/01","\u4ef6\u6570":20,"MA":18.4},{"date_label":"07\/02","\u4ef6\u6570":18,"MA":18.3666666667},{"date_label":"07\/03","\u4ef6\u6570":21,"MA":18.3666666667},{"date_label":"07\/04","\u4ef6\u6570":20,"MA":18.3333333333},{"date_label":"07\/07","\u4ef6\u6570":16,"MA":18.3},{"date_label":"07\/08","\u4ef6\u6570":15,"MA":18.1333333333},{"date_label":"07\/09","\u4ef6\u6570":19,"MA":18.2},{"date_label":"07\/10","\u4ef6\u6570":17,"MA":18.1},{"date_label":"07\/11","\u4ef6\u6570":23,"MA":18.2666666667},{"date_label":"07\/14","\u4ef6\u6570":18,"MA":18.2666666667},{"date_label":"07\/15","\u4ef6\u6570":21,"MA":18.5},{"date_label":"07\/16","\u4ef6\u6570":16,"MA":18.4666666667},{"date_label":"07\/17","\u4ef6\u6570":20,"MA":18.4},{"date_label":"07\/18","\u4ef6\u6570":21,"MA":18.3666666667},{"date_label":"07\/22","\u4ef6\u6570":19,"MA":18.5333333333},{"date_label":"07\/23","\u4ef6\u6570":19,"MA":18.6333333333},{"date_label":"07\/24","\u4ef6\u6570":22,"MA":18.8},{"date_label":"07\/25","\u4ef6\u6570":17,"MA":18.7333333333},{"date_label":"07\/28","\u4ef6\u6570":18,"MA":18.7},{"date_label":"07\/29","\u4ef6\u6570":17,"MA":18.6},{"date_label":"07\/30","\u4ef6\u6570":21,"MA":18.7666666667},{"date_label":"07\/31","\u4ef6\u6570":16,"MA":18.6666666667},{"date_label":"08\/01","\u4ef6\u6570":23,"MA":18.6666666667},{"date_label":"08\/04","\u4ef6\u6570":19,"MA":18.7666666667},{"date_label":"08\/05","\u4ef6\u6570":22,"MA":18.9333333333},{"date_label":"08\/06","\u4ef6\u6570":18,"MA":19.0333333333},{"date_label":"08\/07","\u4ef6\u6570":18,"MA":19.1},{"date_label":"08\/08","\u4ef6\u6570":21,"MA":19.1},{"date_label":"08\/12","\u4ef6\u6570":17,"MA":18.9},{"date_label":"08\/13","\u4ef6\u6570":17,"MA":18.9666666667},{"date_label":"08\/14","\u4ef6\u6570":24,"MA":19.1},{"date_label":"08\/15","\u4ef6\u6570":25,"MA":19.3333333333},{"date_label":"08\/18","\u4ef6\u6570":22,"MA":19.3666666667},{"date_label":"08\/19","\u4ef6\u6570":21,"MA":19.4},{"date_label":"08\/20","\u4ef6\u6570":18,"MA":19.4666666667},{"date_label":"08\/21","\u4ef6\u6570":25,"MA":19.8},{"date_label":"08\/22","\u4ef6\u6570":22,"MA":19.9},{"date_label":"08\/25","\u4ef6\u6570":22,"MA":20.0666666667},{"date_label":"08\/26","\u4ef6\u6570":18,"MA":19.9},{"date_label":"08\/27","\u4ef6\u6570":12,"MA":19.7},{"date_label":"08\/28","\u4ef6\u6570":19,"MA":19.6333333333},{"date_label":"08\/29","\u4ef6\u6570":18,"MA":19.7},{"date_label":"09\/01","\u4ef6\u6570":18,"MA":19.6333333333},{"date_label":"09\/02","\u4ef6\u6570":20,"MA":19.6},{"date_label":"09\/03","\u4ef6\u6570":17,"MA":19.5333333333},{"date_label":"09\/04","\u4ef6\u6570":17,"MA":19.4666666667},{"date_label":"09\/05","\u4ef6\u6570":23,"MA":19.5},{"date_label":"09\/08","\u4ef6\u6570":20,"MA":19.6},{"date_label":"09\/09","\u4ef6\u6570":14,"MA":19.4666666667},{"date_label":"09\/10","\u4ef6\u6570":21,"MA":19.6},{"date_label":"09\/11","\u4ef6\u6570":19,"MA":19.5333333333},{"date_label":"09\/12","\u4ef6\u6570":23,"MA":19.7666666667},{"date_label":"09\/16","\u4ef6\u6570":20,"MA":19.6666666667},{"date_label":"09\/17","\u4ef6\u6570":19,"MA":19.6666666667},{"date_label":"09\/18","\u4ef6\u6570":22,"MA":19.6666666667},{"date_label":"09\/19","\u4ef6\u6570":21,"MA":19.7666666667},{"date_label":"09\/22","\u4ef6\u6570":20,"MA":19.8333333333},{"date_label":"09\/24","\u4ef6\u6570":21,"MA":19.8333333333},{"date_label":"09\/25","\u4ef6\u6570":17,"MA":19.8333333333},{"date_label":"09\/26","\u4ef6\u6570":20,"MA":19.9333333333},{"date_label":"09\/29","\u4ef6\u6570":16,"MA":19.6666666667},{"date_label":"09\/30","\u4ef6\u6570":20,"MA":19.5},{"date_label":"10\/01","\u4ef6\u6570":18,"MA":19.3666666667},{"date_label":"10\/02","\u4ef6\u6570":22,"MA":19.4},{"date_label":"10\/03","\u4ef6\u6570":21,"MA":19.5},{"date_label":"10\/06","\u4ef6\u6570":20,"MA":19.3333333333},{"date_label":"10\/07","\u4ef6\u6570":19,"MA":19.2333333333},{"date_label":"10\/08","\u4ef6\u6570":15,"MA":19.0},{"date_label":"10\/09","\u4ef6\u6570":23,"MA":19.1666666667},{"date_label":"10\/10","\u4ef6\u6570":19,"MA":19.4},{"date_label":"10\/14","\u4ef6\u6570":19,"MA":19.4},{"date_label":"10\/15","\u4ef6\u6570":21,"MA":19.5},{"date_label":"10\/16","\u4ef6\u6570":23,"MA":19.6666666667},{"date_label":"10\/17","\u4ef6\u6570":17,"MA":19.5666666667},{"date_label":"10\/20","\u4ef6\u6570":18,"MA":19.6},{"date_label":"10\/21","\u4ef6\u6570":17,"MA":19.6},{"date_label":"10\/22","\u4ef6\u6570":17,"MA":19.4},{"date_label":"10\/23","\u4ef6\u6570":25,"MA":19.5666666667},{"date_label":"10\/24","\u4ef6\u6570":19,"MA":19.7333333333},{"date_label":"10\/27","\u4ef6\u6570":20,"MA":19.7},{"date_label":"10\/28","\u4ef6\u6570":18,"MA":19.6666666667},{"date_label":"10\/29","\u4ef6\u6570":19,"MA":19.5333333333},{"date_label":"10\/30","\u4ef6\u6570":18,"MA":19.4666666667},{"date_label":"10\/31","\u4ef6\u6570":16,"MA":19.3666666667},{"date_label":"11\/04","\u4ef6\u6570":22,"MA":19.3666666667},{"date_label":"11\/05","\u4ef6\u6570":21,"MA":19.3666666667},{"date_label":"11\/06","\u4ef6\u6570":20,"MA":19.3666666667},{"date_label":"11\/07","\u4ef6\u6570":19,"MA":19.3},{"date_label":"11\/10","\u4ef6\u6570":21,"MA":19.4333333333},{"date_label":"11\/11","\u4ef6\u6570":21,"MA":19.4666666667},{"date_label":"11\/12","\u4ef6\u6570":21,"MA":19.6333333333},{"date_label":"11\/13","\u4ef6\u6570":27,"MA":19.8666666667},{"date_label":"11\/14","\u4ef6\u6570":23,"MA":20.0333333333},{"date_label":"11\/17","\u4ef6\u6570":20,"MA":19.9666666667},{"date_label":"11\/18","\u4ef6\u6570":19,"MA":19.9},{"date_label":"11\/19","\u4ef6\u6570":17,"MA":19.8},{"date_label":"11\/20","\u4ef6\u6570":23,"MA":19.9333333333},{"date_label":"11\/21","\u4ef6\u6570":22,"MA":20.1666666667},{"date_label":"11\/25","\u4ef6\u6570":18,"MA":20.0},{"date_label":"11\/26","\u4ef6\u6570":21,"MA":20.0666666667},{"date_label":"11\/27","\u4ef6\u6570":19,"MA":20.0666666667},{"date_label":"11\/28","\u4ef6\u6570":21,"MA":20.0666666667},{"date_label":"12\/01","\u4ef6\u6570":23,"MA":20.0666666667},{"date_label":"12\/02","\u4ef6\u6570":20,"MA":20.1666666667},{"date_label":"12\/03","\u4ef6\u6570":16,"MA":20.1},{"date_label":"12\/04","\u4ef6\u6570":21,"MA":20.2333333333},{"date_label":"12\/05","\u4ef6\u6570":20,"MA":20.3333333333},{"date_label":"12\/08","\u4ef6\u6570":16,"MA":20.0333333333},{"date_label":"12\/09","\u4ef6\u6570":17,"MA":19.9666666667},{"date_label":"12\/10","\u4ef6\u6570":19,"MA":19.9333333333},{"date_label":"12\/11","\u4ef6\u6570":18,"MA":19.9333333333},{"date_label":"12\/12","\u4ef6\u6570":16,"MA":19.8333333333},{"date_label":"12\/15","\u4ef6\u6570":22,"MA":19.9666666667},{"date_label":"12\/16","\u4ef6\u6570":23,"MA":20.2},{"date_label":"12\/17","\u4ef6\u6570":21,"MA":20.1666666667},{"date_label":"12\/18","\u4ef6\u6570":25,"MA":20.3},{"date_label":"12\/19","\u4ef6\u6570":21,"MA":20.3333333333},{"date_label":"12\/22","\u4ef6\u6570":21,"MA":20.4},{"date_label":"12\/23","\u4ef6\u6570":20,"MA":20.3666666667},{"date_label":"12\/24","\u4ef6\u6570":24,"MA":20.4666666667},{"date_label":"12\/25","\u4ef6\u6570":20,"MA":20.4333333333},{"date_label":"12\/26","\u4ef6\u6570":20,"MA":20.2},{"date_label":"01\/05","\u4ef6\u6570":14,"MA":19.9},{"date_label":"01\/06","\u4ef6\u6570":16,"MA":19.7666666667},{"date_label":"01\/07","\u4ef6\u6570":20,"MA":19.8},{"date_label":"01\/08","\u4ef6\u6570":22,"MA":19.9666666667},{"date_label":"01\/09","\u4ef6\u6570":25,"MA":20.0333333333},{"date_label":"01\/13","\u4ef6\u6570":19,"MA":19.9333333333},{"date_label":"01\/14","\u4ef6\u6570":21,"MA":20.0333333333},{"date_label":"01\/15","\u4ef6\u6570":24,"MA":20.1333333333},{"date_label":"01\/16","\u4ef6\u6570":21,"MA":20.2},{"date_label":"01\/19","\u4ef6\u6570":19,"MA":20.1333333333},{"date_label":"01\/20","\u4ef6\u6570":20,"MA":20.0333333333},{"date_label":"01\/21","\u4ef6\u6570":19,"MA":20.0},{"date_label":"01\/22","\u4ef6\u6570":23,"MA":20.2333333333},{"date_label":"01\/23","\u4ef6\u6570":24,"MA":20.3333333333},{"date_label":"01\/26","\u4ef6\u6570":23,"MA":20.4333333333},{"date_label":"01\/27","\u4ef6\u6570":20,"MA":20.5666666667},{"date_label":"01\/28","\u4ef6\u6570":17,"MA":20.5666666667},{"date_label":"01\/29","\u4ef6\u6570":25,"MA":20.7666666667},{"date_label":"01\/30","\u4ef6\u6570":23,"MA":20.9333333333},{"date_label":"02\/02","\u4ef6\u6570":20,"MA":21.0666666667},{"date_label":"02\/03","\u4ef6\u6570":20,"MA":21.0},{"date_label":"02\/04","\u4ef6\u6570":19,"MA":20.8666666667},{"date_label":"02\/05","\u4ef6\u6570":20,"MA":20.8333333333},{"date_label":"02\/06","\u4ef6\u6570":24,"MA":20.8},{"date_label":"02\/09","\u4ef6\u6570":19,"MA":20.7333333333},{"date_label":"02\/10","\u4ef6\u6570":24,"MA":20.8333333333}]);
+                drawChart('chart2', [{"date_label":"04\/01","\u4ef6\u6570":16,"MA":16.0},{"date_label":"04\/02","\u4ef6\u6570":17,"MA":16.5},{"date_label":"04\/03","\u4ef6\u6570":18,"MA":17.0},{"date_label":"04\/04","\u4ef6\u6570":19,"MA":17.5},{"date_label":"04\/07","\u4ef6\u6570":18,"MA":17.6},{"date_label":"04\/08","\u4ef6\u6570":15,"MA":17.1666666667},{"date_label":"04\/09","\u4ef6\u6570":17,"MA":17.1428571429},{"date_label":"04\/10","\u4ef6\u6570":15,"MA":16.875},{"date_label":"04\/11","\u4ef6\u6570":16,"MA":16.7777777778},{"date_label":"04\/14","\u4ef6\u6570":18,"MA":16.9},{"date_label":"04\/15","\u4ef6\u6570":21,"MA":17.2727272727},{"date_label":"04\/16","\u4ef6\u6570":14,"MA":17.0},{"date_label":"04\/17","\u4ef6\u6570":22,"MA":17.3846153846},{"date_label":"04\/18","\u4ef6\u6570":14,"MA":17.1428571429},{"date_label":"04\/21","\u4ef6\u6570":15,"MA":17.0},{"date_label":"04\/22","\u4ef6\u6570":20,"MA":17.1875},{"date_label":"04\/23","\u4ef6\u6570":17,"MA":17.1764705882},{"date_label":"04\/24","\u4ef6\u6570":22,"MA":17.4444444444},{"date_label":"04\/25","\u4ef6\u6570":21,"MA":17.6315789474},{"date_label":"04\/28","\u4ef6\u6570":15,"MA":17.5},{"date_label":"04\/30","\u4ef6\u6570":18,"MA":17.5238095238},{"date_label":"05\/01","\u4ef6\u6570":20,"MA":17.6363636364},{"date_label":"05\/02","\u4ef6\u6570":19,"MA":17.6956521739},{"date_label":"05\/07","\u4ef6\u6570":20,"MA":17.7916666667},{"date_label":"05\/08","\u4ef6\u6570":19,"MA":17.84},{"date_label":"05\/09","\u4ef6\u6570":21,"MA":17.9615384615},{"date_label":"05\/12","\u4ef6\u6570":20,"MA":18.037037037},{"date_label":"05\/13","\u4ef6\u6570":21,"MA":18.1428571429},{"date_label":"05\/14","\u4ef6\u6570":17,"MA":18.1034482759},{"date_label":"05\/15","\u4ef6\u6570":23,"MA":18.2666666667},{"date_label":"05\/16","\u4ef6\u6570":19,"MA":18.3666666667},{"date_label":"05\/19","\u4ef6\u6570":15,"MA":18.3},{"date_label":"05\/20","\u4ef6\u6570":20,"MA":18.3666666667},{"date_label":"05\/21","\u4ef6\u6570":19,"MA":18.3666666667},{"date_label":"05\/22","\u4ef6\u6570":21,"MA":18.4666666667},{"date_label":"05\/23","\u4ef6\u6570":21,"MA":18.6666666667},{"date_label":"05\/26","\u4ef6\u6570":17,"MA":18.6666666667},{"date_label":"05\/27","\u4ef6\u6570":20,"MA":18.8333333333},{"date_label":"05\/28","\u4ef6\u6570":17,"MA":18.8666666667},{"date_label":"05\/29","\u4ef6\u6570":20,"MA":18.9333333333},{"date_label":"05\/30","\u4ef6\u6570":18,"MA":18.8333333333},{"date_label":"06\/02","\u4ef6\u6570":18,"MA":18.9666666667},{"date_label":"06\/03","\u4ef6\u6570":14,"MA":18.7},{"date_label":"06\/04","\u4ef6\u6570":17,"MA":18.8},{"date_label":"06\/05","\u4ef6\u6570":22,"MA":19.0333333333},{"date_label":"06\/06","\u4ef6\u6570":22,"MA":19.1},{"date_label":"06\/09","\u4ef6\u6570":14,"MA":19.0},{"date_label":"06\/10","\u4ef6\u6570":16,"MA":18.8},{"date_label":"06\/11","\u4ef6\u6570":17,"MA":18.6666666667},{"date_label":"06\/12","\u4ef6\u6570":19,"MA":18.8},{"date_label":"06\/13","\u4ef6\u6570":19,"MA":18.8333333333},{"date_label":"06\/16","\u4ef6\u6570":20,"MA":18.8333333333},{"date_label":"06\/17","\u4ef6\u6570":16,"MA":18.7333333333},{"date_label":"06\/18","\u4ef6\u6570":19,"MA":18.7},{"date_label":"06\/19","\u4ef6\u6570":23,"MA":18.8333333333},{"date_label":"06\/20","\u4ef6\u6570":16,"MA":18.6666666667},{"date_label":"06\/23","\u4ef6\u6570":17,"MA":18.5666666667},{"date_label":"06\/24","\u4ef6\u6570":15,"MA":18.3666666667},{"date_label":"06\/25","\u4ef6\u6570":16,"MA":18.3333333333},{"date_label":"06\/26","\u4ef6\u6570":21,"MA":18.2666666667},{"date_label":"06\/27","\u4ef6\u6570":23,"MA":18.4},{"date_label":"06\/30","\u4ef6\u6570":15,"MA":18.4},{"date_label":"07\/01","\u4ef6\u6570":20,"MA":18.4},{"date_label":"07\/02","\u4ef6\u6570":18,"MA":18.3666666667},{"date_label":"07\/03","\u4ef6\u6570":21,"MA":18.3666666667},{"date_label":"07\/04","\u4ef6\u6570":20,"MA":18.3333333333},{"date_label":"07\/07","\u4ef6\u6570":16,"MA":18.3},{"date_label":"07\/08","\u4ef6\u6570":15,"MA":18.1333333333},{"date_label":"07\/09","\u4ef6\u6570":19,"MA":18.2},{"date_label":"07\/10","\u4ef6\u6570":17,"MA":18.1},{"date_label":"07\/11","\u4ef6\u6570":23,"MA":18.2666666667},{"date_label":"07\/14","\u4ef6\u6570":18,"MA":18.2666666667},{"date_label":"07\/15","\u4ef6\u6570":21,"MA":18.5},{"date_label":"07\/16","\u4ef6\u6570":16,"MA":18.4666666667},{"date_label":"07\/17","\u4ef6\u6570":20,"MA":18.4},{"date_label":"07\/18","\u4ef6\u6570":21,"MA":18.3666666667},{"date_label":"07\/22","\u4ef6\u6570":19,"MA":18.5333333333},{"date_label":"07\/23","\u4ef6\u6570":19,"MA":18.6333333333},{"date_label":"07\/24","\u4ef6\u6570":22,"MA":18.8},{"date_label":"07\/25","\u4ef6\u6570":17,"MA":18.7333333333},{"date_label":"07\/28","\u4ef6\u6570":18,"MA":18.7},{"date_label":"07\/29","\u4ef6\u6570":17,"MA":18.6},{"date_label":"07\/30","\u4ef6\u6570":21,"MA":18.7666666667},{"date_label":"07\/31","\u4ef6\u6570":16,"MA":18.6666666667},{"date_label":"08\/01","\u4ef6\u6570":23,"MA":18.6666666667},{"date_label":"08\/04","\u4ef6\u6570":19,"MA":18.7666666667},{"date_label":"08\/05","\u4ef6\u6570":22,"MA":18.9333333333},{"date_label":"08\/06","\u4ef6\u6570":18,"MA":19.0333333333},{"date_label":"08\/07","\u4ef6\u6570":18,"MA":19.1},{"date_label":"08\/08","\u4ef6\u6570":21,"MA":19.1},{"date_label":"08\/12","\u4ef6\u6570":17,"MA":18.9},{"date_label":"08\/13","\u4ef6\u6570":17,"MA":18.9666666667},{"date_label":"08\/14","\u4ef6\u6570":24,"MA":19.1},{"date_label":"08\/15","\u4ef6\u6570":25,"MA":19.3333333333},{"date_label":"08\/18","\u4ef6\u6570":22,"MA":19.3666666667},{"date_label":"08\/19","\u4ef6\u6570":21,"MA":19.4},{"date_label":"08\/20","\u4ef6\u6570":18,"MA":19.4666666667},{"date_label":"08\/21","\u4ef6\u6570":25,"MA":19.8},{"date_label":"08\/22","\u4ef6\u6570":22,"MA":19.9},{"date_label":"08\/25","\u4ef6\u6570":22,"MA":20.0666666667},{"date_label":"08\/26","\u4ef6\u6570":18,"MA":19.9},{"date_label":"08\/27","\u4ef6\u6570":12,"MA":19.7},{"date_label":"08\/28","\u4ef6\u6570":19,"MA":19.6333333333},{"date_label":"08\/29","\u4ef6\u6570":18,"MA":19.7},{"date_label":"09\/01","\u4ef6\u6570":18,"MA":19.6333333333},{"date_label":"09\/02","\u4ef6\u6570":20,"MA":19.6},{"date_label":"09\/03","\u4ef6\u6570":17,"MA":19.5333333333},{"date_label":"09\/04","\u4ef6\u6570":17,"MA":19.4666666667},{"date_label":"09\/05","\u4ef6\u6570":23,"MA":19.5},{"date_label":"09\/08","\u4ef6\u6570":20,"MA":19.6},{"date_label":"09\/09","\u4ef6\u6570":14,"MA":19.4666666667},{"date_label":"09\/10","\u4ef6\u6570":21,"MA":19.6},{"date_label":"09\/11","\u4ef6\u6570":19,"MA":19.5333333333},{"date_label":"09\/12","\u4ef6\u6570":23,"MA":19.7666666667},{"date_label":"09\/16","\u4ef6\u6570":20,"MA":19.6666666667},{"date_label":"09\/17","\u4ef6\u6570":19,"MA":19.6666666667},{"date_label":"09\/18","\u4ef6\u6570":22,"MA":19.6666666667},{"date_label":"09\/19","\u4ef6\u6570":21,"MA":19.7666666667},{"date_label":"09\/22","\u4ef6\u6570":20,"MA":19.8333333333},{"date_label":"09\/24","\u4ef6\u6570":21,"MA":19.8333333333},{"date_label":"09\/25","\u4ef6\u6570":17,"MA":19.8333333333},{"date_label":"09\/26","\u4ef6\u6570":20,"MA":19.9333333333},{"date_label":"09\/29","\u4ef6\u6570":16,"MA":19.6666666667},{"date_label":"09\/30","\u4ef6\u6570":20,"MA":19.5},{"date_label":"10\/01","\u4ef6\u6570":18,"MA":19.3666666667},{"date_label":"10\/02","\u4ef6\u6570":22,"MA":19.4},{"date_label":"10\/03","\u4ef6\u6570":21,"MA":19.5},{"date_label":"10\/06","\u4ef6\u6570":20,"MA":19.3333333333},{"date_label":"10\/07","\u4ef6\u6570":19,"MA":19.2333333333},{"date_label":"10\/08","\u4ef6\u6570":15,"MA":19.0},{"date_label":"10\/09","\u4ef6\u6570":23,"MA":19.1666666667},{"date_label":"10\/10","\u4ef6\u6570":19,"MA":19.4},{"date_label":"10\/14","\u4ef6\u6570":19,"MA":19.4},{"date_label":"10\/15","\u4ef6\u6570":21,"MA":19.5},{"date_label":"10\/16","\u4ef6\u6570":23,"MA":19.6666666667},{"date_label":"10\/17","\u4ef6\u6570":17,"MA":19.5666666667},{"date_label":"10\/20","\u4ef6\u6570":18,"MA":19.6},{"date_label":"10\/21","\u4ef6\u6570":17,"MA":19.6},{"date_label":"10\/22","\u4ef6\u6570":17,"MA":19.4},{"date_label":"10\/23","\u4ef6\u6570":25,"MA":19.5666666667},{"date_label":"10\/24","\u4ef6\u6570":19,"MA":19.7333333333},{"date_label":"10\/27","\u4ef6\u6570":20,"MA":19.7},{"date_label":"10\/28","\u4ef6\u6570":18,"MA":19.6666666667},{"date_label":"10\/29","\u4ef6\u6570":19,"MA":19.5333333333},{"date_label":"10\/30","\u4ef6\u6570":18,"MA":19.4666666667},{"date_label":"10\/31","\u4ef6\u6570":16,"MA":19.3666666667},{"date_label":"11\/04","\u4ef6\u6570":22,"MA":19.3666666667},{"date_label":"11\/05","\u4ef6\u6570":21,"MA":19.3666666667},{"date_label":"11\/06","\u4ef6\u6570":20,"MA":19.3666666667},{"date_label":"11\/07","\u4ef6\u6570":19,"MA":19.3},{"date_label":"11\/10","\u4ef6\u6570":21,"MA":19.4333333333},{"date_label":"11\/11","\u4ef6\u6570":21,"MA":19.4666666667},{"date_label":"11\/12","\u4ef6\u6570":21,"MA":19.6333333333},{"date_label":"11\/13","\u4ef6\u6570":27,"MA":19.8666666667},{"date_label":"11\/14","\u4ef6\u6570":23,"MA":20.0333333333},{"date_label":"11\/17","\u4ef6\u6570":20,"MA":19.9666666667},{"date_label":"11\/18","\u4ef6\u6570":19,"MA":19.9},{"date_label":"11\/19","\u4ef6\u6570":17,"MA":19.8},{"date_label":"11\/20","\u4ef6\u6570":23,"MA":19.9333333333},{"date_label":"11\/21","\u4ef6\u6570":22,"MA":20.1666666667},{"date_label":"11\/25","\u4ef6\u6570":18,"MA":20.0},{"date_label":"11\/26","\u4ef6\u6570":21,"MA":20.0666666667},{"date_label":"11\/27","\u4ef6\u6570":19,"MA":20.0666666667},{"date_label":"11\/28","\u4ef6\u6570":21,"MA":20.0666666667},{"date_label":"12\/01","\u4ef6\u6570":23,"MA":20.0666666667},{"date_label":"12\/02","\u4ef6\u6570":20,"MA":20.1666666667},{"date_label":"12\/03","\u4ef6\u6570":16,"MA":20.1},{"date_label":"12\/04","\u4ef6\u6570":21,"MA":20.2333333333},{"date_label":"12\/05","\u4ef6\u6570":20,"MA":20.3333333333},{"date_label":"12\/08","\u4ef6\u6570":16,"MA":20.0333333333},{"date_label":"12\/09","\u4ef6\u6570":17,"MA":19.9666666667},{"date_label":"12\/10","\u4ef6\u6570":19,"MA":19.9333333333},{"date_label":"12\/11","\u4ef6\u6570":18,"MA":19.9333333333},{"date_label":"12\/12","\u4ef6\u6570":16,"MA":19.8333333333},{"date_label":"12\/15","\u4ef6\u6570":22,"MA":19.9666666667},{"date_label":"12\/16","\u4ef6\u6570":23,"MA":20.2},{"date_label":"12\/17","\u4ef6\u6570":21,"MA":20.1666666667},{"date_label":"12\/18","\u4ef6\u6570":25,"MA":20.3},{"date_label":"12\/19","\u4ef6\u6570":21,"MA":20.3333333333},{"date_label":"12\/22","\u4ef6\u6570":21,"MA":20.4},{"date_label":"12\/23","\u4ef6\u6570":20,"MA":20.3666666667},{"date_label":"12\/24","\u4ef6\u6570":24,"MA":20.4666666667},{"date_label":"12\/25","\u4ef6\u6570":20,"MA":20.4333333333},{"date_label":"12\/26","\u4ef6\u6570":20,"MA":20.2},{"date_label":"01\/05","\u4ef6\u6570":14,"MA":19.9},{"date_label":"01\/06","\u4ef6\u6570":16,"MA":19.7666666667},{"date_label":"01\/07","\u4ef6\u6570":20,"MA":19.8},{"date_label":"01\/08","\u4ef6\u6570":22,"MA":19.9666666667},{"date_label":"01\/09","\u4ef6\u6570":25,"MA":20.0333333333},{"date_label":"01\/13","\u4ef6\u6570":19,"MA":19.9333333333},{"date_label":"01\/14","\u4ef6\u6570":21,"MA":20.0333333333},{"date_label":"01\/15","\u4ef6\u6570":24,"MA":20.1333333333},{"date_label":"01\/16","\u4ef6\u6570":21,"MA":20.2},{"date_label":"01\/19","\u4ef6\u6570":19,"MA":20.1333333333},{"date_label":"01\/20","\u4ef6\u6570":20,"MA":20.0333333333},{"date_label":"01\/21","\u4ef6\u6570":19,"MA":20.0},{"date_label":"01\/22","\u4ef6\u6570":23,"MA":20.2333333333},{"date_label":"01\/23","\u4ef6\u6570":24,"MA":20.3333333333},{"date_label":"01\/26","\u4ef6\u6570":23,"MA":20.4333333333},{"date_label":"01\/27","\u4ef6\u6570":20,"MA":20.5666666667},{"date_label":"01\/28","\u4ef6\u6570":17,"MA":20.5666666667},{"date_label":"01\/29","\u4ef6\u6570":25,"MA":20.7666666667},{"date_label":"01\/30","\u4ef6\u6570":23,"MA":20.9333333333},{"date_label":"02\/02","\u4ef6\u6570":20,"MA":21.0666666667},{"date_label":"02\/03","\u4ef6\u6570":20,"MA":21.0},{"date_label":"02\/04","\u4ef6\u6570":19,"MA":20.8666666667},{"date_label":"02\/05","\u4ef6\u6570":20,"MA":20.8333333333},{"date_label":"02\/06","\u4ef6\u6570":24,"MA":20.8},{"date_label":"02\/09","\u4ef6\u6570":19,"MA":20.7333333333},{"date_label":"02\/10","\u4ef6\u6570":25,"MA":20.8666666667},{"date_label":"02\/12","\u4ef6\u6570":20,"MA":20.8666666667}]);
                 document.getElementById('loading').classList.remove('show');
             }, 100);
             
@@ -808,6 +966,419 @@
                 });
             });
         </script>
+        
+        <!-- 診療科別パフォーマンス（最下部） -->
+        <div class="dept-section">
+            <div class="dept-section-title">📊 診療科別 全身麻酔パフォーマンス</div>
+            <div class="dept-section-subtitle">目標ファイル登録診療科のみ ｜ 🔵フレーム = 期間目標  ✅≥100%  🟡80〜99%  🔴&lt;80%</div>
+            <div class="dept-tabs">
+                <button class="dept-tab-btn active" onclick="switchDeptTab('7')">直近7日<br><small>2026-02-06 〜 2026-02-12</small></button>
+                <button class="dept-tab-btn"        onclick="switchDeptTab('28')">直近28日<br><small>2026-01-16 〜 2026-02-12</small></button>
+                <button class="dept-tab-btn"        onclick="switchDeptTab('fy')">今年度<br><small>2025-04-01 〜 2026-02-12（318日・日割り目標）</small></button>
+            </div>
+            <div class="dept-panel active" id="dept-panel-7">
+                
+            <div class="dept-row">
+              <div class="dept-name" title="泌尿器科">泌尿器科</div>
+              <div class="dept-act-tgt">13件 / 目標10.2件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:43.3%"></div>
+                <div class="dept-target-line" style="left:34.0%"></div>
+              </div>
+              <div class="dept-rate">127%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="整形外科">整形外科</div>
+              <div class="dept-act-tgt">30件 / 目標27.2件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:100.0%"></div>
+                <div class="dept-target-line" style="left:90.7%"></div>
+              </div>
+              <div class="dept-rate">110%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="呼吸器外科">呼吸器外科</div>
+              <div class="dept-act-tgt">3件 / 目標2.8件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:10.0%"></div>
+                <div class="dept-target-line" style="left:9.3%"></div>
+              </div>
+              <div class="dept-rate">107%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="一般消化器外科">一般消化器外科</div>
+              <div class="dept-act-tgt">14件 / 目標14.1件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:46.7%"></div>
+                <div class="dept-target-line" style="left:47.0%"></div>
+              </div>
+              <div class="dept-rate">99%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="歯科口腔外科">歯科口腔外科</div>
+              <div class="dept-act-tgt">3件 / 目標3.2件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:10.0%"></div>
+                <div class="dept-target-line" style="left:10.7%"></div>
+              </div>
+              <div class="dept-rate">94%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="産婦人科">産婦人科</div>
+              <div class="dept-act-tgt">11件 / 目標12.5件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:36.7%"></div>
+                <div class="dept-target-line" style="left:41.7%"></div>
+              </div>
+              <div class="dept-rate">88%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="耳鼻咽喉科">耳鼻咽喉科</div>
+              <div class="dept-act-tgt">6件 / 目標8.1件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:20.0%"></div>
+                <div class="dept-target-line" style="left:27.0%"></div>
+              </div>
+              <div class="dept-rate">74%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="乳腺外科">乳腺外科</div>
+              <div class="dept-act-tgt">6件 / 目標8.1件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:20.0%"></div>
+                <div class="dept-target-line" style="left:27.0%"></div>
+              </div>
+              <div class="dept-rate">74%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="心臓血管外科">心臓血管外科</div>
+              <div class="dept-act-tgt">1件 / 目標2.1件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:3.3%"></div>
+                <div class="dept-target-line" style="left:7.0%"></div>
+              </div>
+              <div class="dept-rate">48%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="形成外科">形成外科</div>
+              <div class="dept-act-tgt">1件 / 目標3.0件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:3.3%"></div>
+                <div class="dept-target-line" style="left:10.0%"></div>
+              </div>
+              <div class="dept-rate">33%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="脳神経外科">脳神経外科</div>
+              <div class="dept-act-tgt">1件 / 目標3.0件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:3.3%"></div>
+                <div class="dept-target-line" style="left:10.0%"></div>
+              </div>
+              <div class="dept-rate">33%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="皮膚科">皮膚科</div>
+              <div class="dept-act-tgt">0件 / 目標1.2件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:0.0%"></div>
+                <div class="dept-target-line" style="left:4.0%"></div>
+              </div>
+              <div class="dept-rate">0%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+            </div>
+            <div class="dept-panel" id="dept-panel-28">
+                
+            <div class="dept-row">
+              <div class="dept-name" title="歯科口腔外科">歯科口腔外科</div>
+              <div class="dept-act-tgt">17件 / 目標12.8件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:13.2%"></div>
+                <div class="dept-target-line" style="left:9.9%"></div>
+              </div>
+              <div class="dept-rate">133%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="整形外科">整形外科</div>
+              <div class="dept-act-tgt">129件 / 目標108.8件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:100.0%"></div>
+                <div class="dept-target-line" style="left:84.3%"></div>
+              </div>
+              <div class="dept-rate">119%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="一般消化器外科">一般消化器外科</div>
+              <div class="dept-act-tgt">62件 / 目標56.4件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:48.1%"></div>
+                <div class="dept-target-line" style="left:43.7%"></div>
+              </div>
+              <div class="dept-rate">110%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="脳神経外科">脳神経外科</div>
+              <div class="dept-act-tgt">13件 / 目標12.0件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:10.1%"></div>
+                <div class="dept-target-line" style="left:9.3%"></div>
+              </div>
+              <div class="dept-rate">108%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="泌尿器科">泌尿器科</div>
+              <div class="dept-act-tgt">44件 / 目標40.8件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:34.1%"></div>
+                <div class="dept-target-line" style="left:31.6%"></div>
+              </div>
+              <div class="dept-rate">108%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="耳鼻咽喉科">耳鼻咽喉科</div>
+              <div class="dept-act-tgt">34件 / 目標32.4件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:26.4%"></div>
+                <div class="dept-target-line" style="left:25.1%"></div>
+              </div>
+              <div class="dept-rate">105%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="皮膚科">皮膚科</div>
+              <div class="dept-act-tgt">5件 / 目標4.8件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:3.9%"></div>
+                <div class="dept-target-line" style="left:3.7%"></div>
+              </div>
+              <div class="dept-rate">104%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="呼吸器外科">呼吸器外科</div>
+              <div class="dept-act-tgt">11件 / 目標11.2件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:8.5%"></div>
+                <div class="dept-target-line" style="left:8.7%"></div>
+              </div>
+              <div class="dept-rate">98%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="産婦人科">産婦人科</div>
+              <div class="dept-act-tgt">49件 / 目標50.0件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:38.0%"></div>
+                <div class="dept-target-line" style="left:38.8%"></div>
+              </div>
+              <div class="dept-rate">98%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="乳腺外科">乳腺外科</div>
+              <div class="dept-act-tgt">25件 / 目標32.4件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:19.4%"></div>
+                <div class="dept-target-line" style="left:25.1%"></div>
+              </div>
+              <div class="dept-rate">77%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="心臓血管外科">心臓血管外科</div>
+              <div class="dept-act-tgt">6件 / 目標8.4件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:4.7%"></div>
+                <div class="dept-target-line" style="left:6.5%"></div>
+              </div>
+              <div class="dept-rate">71%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="形成外科">形成外科</div>
+              <div class="dept-act-tgt">8件 / 目標12.0件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:6.2%"></div>
+                <div class="dept-target-line" style="left:9.3%"></div>
+              </div>
+              <div class="dept-rate">67%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+            </div>
+            <div class="dept-panel" id="dept-panel-fy">
+                
+            <div class="dept-row">
+              <div class="dept-name" title="皮膚科">皮膚科</div>
+              <div class="dept-act-tgt">74件 / 目標54.5件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:5.8%"></div>
+                <div class="dept-target-line" style="left:4.2%"></div>
+              </div>
+              <div class="dept-rate">136%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="歯科口腔外科">歯科口腔外科</div>
+              <div class="dept-act-tgt">164件 / 目標145.4件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:12.8%"></div>
+                <div class="dept-target-line" style="left:11.3%"></div>
+              </div>
+              <div class="dept-rate">113%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="泌尿器科">泌尿器科</div>
+              <div class="dept-act-tgt">489件 / 目標463.4件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:38.0%"></div>
+                <div class="dept-target-line" style="left:36.0%"></div>
+              </div>
+              <div class="dept-rate">106%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="整形外科">整形外科</div>
+              <div class="dept-act-tgt">1286件 / 目標1235.7件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill achieved" style="width:100.0%"></div>
+                <div class="dept-target-line" style="left:96.1%"></div>
+              </div>
+              <div class="dept-rate">104%</div>
+              <div class="dept-badge">✅</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="耳鼻咽喉科">耳鼻咽喉科</div>
+              <div class="dept-act-tgt">344件 / 目標368.0件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:26.7%"></div>
+                <div class="dept-target-line" style="left:28.6%"></div>
+              </div>
+              <div class="dept-rate">93%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="脳神経外科">脳神経外科</div>
+              <div class="dept-act-tgt">123件 / 目標136.3件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:9.6%"></div>
+                <div class="dept-target-line" style="left:10.6%"></div>
+              </div>
+              <div class="dept-rate">90%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="一般消化器外科">一般消化器外科</div>
+              <div class="dept-act-tgt">572件 / 目標640.5件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:44.5%"></div>
+                <div class="dept-target-line" style="left:49.8%"></div>
+              </div>
+              <div class="dept-rate">89%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="産婦人科">産婦人科</div>
+              <div class="dept-act-tgt">497件 / 目標567.9件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:38.6%"></div>
+                <div class="dept-target-line" style="left:44.2%"></div>
+              </div>
+              <div class="dept-rate">88%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="乳腺外科">乳腺外科</div>
+              <div class="dept-act-tgt">297件 / 目標368.0件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill near" style="width:23.1%"></div>
+                <div class="dept-target-line" style="left:28.6%"></div>
+              </div>
+              <div class="dept-rate">81%</div>
+              <div class="dept-badge">🟡</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="呼吸器外科">呼吸器外科</div>
+              <div class="dept-act-tgt">98件 / 目標127.2件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:7.6%"></div>
+                <div class="dept-target-line" style="left:9.9%"></div>
+              </div>
+              <div class="dept-rate">77%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="形成外科">形成外科</div>
+              <div class="dept-act-tgt">104件 / 目標136.3件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:8.1%"></div>
+                <div class="dept-target-line" style="left:10.6%"></div>
+              </div>
+              <div class="dept-rate">76%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+
+            <div class="dept-row">
+              <div class="dept-name" title="心臓血管外科">心臓血管外科</div>
+              <div class="dept-act-tgt">63件 / 目標95.4件</div>
+              <div class="dept-bar-wrap">
+                <div class="dept-bar-fill below" style="width:4.9%"></div>
+                <div class="dept-target-line" style="left:7.4%"></div>
+              </div>
+              <div class="dept-rate">66%</div>
+              <div class="dept-badge">🔴</div>
+            </div>
+            </div>
+        </div>
     </body>
     </html>
     
