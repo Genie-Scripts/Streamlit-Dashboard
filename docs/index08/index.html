@@ -209,13 +209,13 @@
                     flex-direction: row;
                 }
             }
+            
+            /* ── ベース共通カラムスタイル ── */
             .column { 
                 flex: 1; 
                 min-width: 0; 
-                background: white; 
                 padding: 15px; 
                 border-radius: 12px; 
-                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
                 page-break-inside: avoid;
             }
             @media (min-width: 768px) {
@@ -243,6 +243,42 @@
                     order: 2;
                 }
             }
+
+            /* ── 期間1（昨年度）: 右側・控えめスタイル ── */
+            .column.period-1 {
+                background: white;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                opacity: 0.70;
+                filter: grayscale(20%);
+                transition: opacity 0.3s, filter 0.3s;
+            }
+            .column.period-1:hover {
+                opacity: 0.88;
+                filter: grayscale(8%);
+            }
+
+            /* ── 期間2（今年度）: 左側・強調スタイル ── */
+            .column.period-2 {
+                background: linear-gradient(160deg, #EFF6FF 0%, #FFFFFF 100%);
+                border: 2px solid #3B82F6;
+                box-shadow: 0 8px 24px rgba(59,130,246,0.18), 0 2px 6px rgba(59,130,246,0.10);
+                position: relative;
+            }
+            /* 今年度バッジ */
+            .column.period-2::before {
+                content: "✦ 今年度データ";
+                position: absolute;
+                top: -12px;
+                left: 16px;
+                background: #3B82F6;
+                color: white;
+                font-size: 0.72rem;
+                font-weight: bold;
+                padding: 2px 10px;
+                border-radius: 20px;
+                letter-spacing: 0.05em;
+            }
+
             .col-title { 
                 background: #4A5568; 
                 color: white; 
@@ -253,6 +289,11 @@
                 font-weight: bold; 
                 font-size: clamp(0.9rem, 2.5vw, 1.1rem);
             }
+            /* 今年度カラムのcol-titleは青系 */
+            .column.period-2 .col-title {
+                background: linear-gradient(90deg, #1D4ED8 0%, #3B82F6 100%);
+            }
+            
             .col-subtitle {
                 text-align: center;
                 font-size: clamp(0.75rem, 1.8vw, 0.9rem);
@@ -298,6 +339,10 @@
                 position: relative;
                 cursor: pointer;
                 transition: transform 0.2s, box-shadow 0.2s;
+            }
+            /* 今年度カラムのmetricは薄青背景 */
+            .column.period-2 .metric {
+                background: rgba(239,246,255,0.7);
             }
             .metric:hover {
                 transform: translateY(-2px);
@@ -372,11 +417,29 @@
                 margin-top: 5px;
             }
             
-            /* 印刷用スタイル */
+            /* ── 印刷用スタイル ── */
             @media print {
                 body {
                     background: white;
                     padding: 0;
+                }
+                /* 印刷時は透明度・グレースケールをリセットして両方見やすく */
+                .column.period-1 {
+                    opacity: 1 !important;
+                    filter: none !important;
+                    background: white !important;
+                    border: 1px solid #D1D5DB !important;
+                    box-shadow: none !important;
+                }
+                .column.period-2 {
+                    background: white !important;
+                    border: 2px solid #3B82F6 !important;
+                    box-shadow: none !important;
+                }
+                .column.period-2::before {
+                    background: #3B82F6 !important;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
                 }
                 .header, .column, .comparison-summary {
                     box-shadow: none;
@@ -420,7 +483,7 @@
         <div class="header">
             <h1>🏥 手術運営 期間比較レポート</h1>
             <p>分析対象: <strong>全身麻酔のみ</strong></p>
-            <div class="update-time">📅 レポート作成日時: 2026年02月12日 07:19</div>
+            <div class="update-time">📅 レポート作成日時: 2026年02月12日 13:13</div>
             <div>
                 <a href="../index.html" class="portal-btn">📊 ポータルに戻る</a>
                 <button onclick="window.print()" class="print-btn">🖨️ 印刷/PDF保存</button>
