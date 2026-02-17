@@ -664,7 +664,7 @@
             <h1>🏥 全身麻酔手術レポート年度版</h1>
             <p>分析対象: <strong>全身麻酔のみ</strong></p>
             <div class="latest-data-date">📊 最新データ取得日: 2026年02月16日</div>
-            <div class="update-time">🕐 レポート作成日時: 2026年02月17日 07:12</div>
+            <div class="update-time">🕐 レポート作成日時: 2026年02月18日 07:26</div>
             <div>
                 <a href="../index.html" class="portal-btn">📊 ポータルに戻る</a>
                 <button onclick="window.print()" class="print-btn">🖨️ 印刷/PDF保存</button>
@@ -895,9 +895,11 @@
                 const fyAnn = document.getElementById('dept-panel-fy-annual');
                 const fyRol = document.getElementById('dept-panel-fy-rolling');
                 const fyDef = document.getElementById('dept-panel-fy');
+                // fyタブが現在アクティブな場合のみ表示を切り替え
+                const fyTabActive = document.getElementById('dept-btn-fy')?.classList.contains('active');
                 if (fyAnn && fyRol) {
-                    fyAnn.style.display = !isRolling ? 'block' : 'none';
-                    fyRol.style.display =  isRolling ? 'block' : 'none';
+                    fyAnn.style.display = (!isRolling && fyTabActive) ? 'block' : 'none';
+                    fyRol.style.display  = ( isRolling && fyTabActive) ? 'block' : 'none';
                     if (fyDef) fyDef.style.display = 'none';
                 }
                 // ボタンラベル変更
@@ -967,7 +969,20 @@
                 });
                 document.getElementById('dept-panel-7').classList.toggle('active',  w==='7');
                 document.getElementById('dept-panel-28').classList.toggle('active', w==='28');
-                document.getElementById('dept-panel-fy').classList.toggle('active', w==='fy');
+                // fyタブ: annual/rolling 両パネルの表示を currentMode で制御
+                const isFy = (w === 'fy');
+                const isRollingNow = (typeof currentMode !== 'undefined' && currentMode === 'rolling');
+                const annPanel = document.getElementById('dept-panel-fy-annual');
+                const rolPanel = document.getElementById('dept-panel-fy-rolling');
+                const defPanel = document.getElementById('dept-panel-fy');
+                if (annPanel && rolPanel) {
+                    annPanel.style.display = (isFy && !isRollingNow) ? 'block' : 'none';
+                    rolPanel.style.display = (isFy &&  isRollingNow) ? 'block' : 'none';
+                    if (defPanel) defPanel.style.display = 'none';
+                } else {
+                    // フォールバック（dual モードなし）
+                    if (defPanel) defPanel.style.display = isFy ? 'block' : 'none';
+                }
             }
             
             // タブ切り替え機能
@@ -1414,11 +1429,13 @@
               <div class="dept-rate">60%</div>
               <div class="dept-badge">🔴</div>
             </div></div>
-            <!-- 年度比較用パネル -->
-            <div class="dept-panel" id="dept-panel-fy-annual" style="display:none">
+            <!-- 今年度タブ: annual/rolling の両方がある場合は各パネルを使い分け -->
+            <!-- annual パネル: 年度比較モード時に表示 -->
+            <div class="dept-panel" id="dept-panel-fy-annual"
+                 style="display:block">
             <div class="dept-row">
               <div class="dept-name achieved" title="皮膚科">皮膚科</div>
-              <div class="dept-act-tgt">74件 / 目標55.2件</div>
+              <div class="dept-act-tgt">1.6件/週 / 目標1.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:5.7%"></div>
                 <div class="dept-target-line" style="width:4.3%"></div>
@@ -1429,7 +1446,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="歯科口腔外科">歯科口腔外科</div>
-              <div class="dept-act-tgt">167件 / 目標147.2件</div>
+              <div class="dept-act-tgt">3.6件/週 / 目標3.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:12.9%"></div>
                 <div class="dept-target-line" style="width:11.3%"></div>
@@ -1440,7 +1457,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="泌尿器科">泌尿器科</div>
-              <div class="dept-act-tgt">494件 / 目標469.2件</div>
+              <div class="dept-act-tgt">10.7件/週 / 目標10.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:38.1%"></div>
                 <div class="dept-target-line" style="width:36.2%"></div>
@@ -1451,7 +1468,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="整形外科">整形外科</div>
-              <div class="dept-act-tgt">1297件 / 目標1251.2件</div>
+              <div class="dept-act-tgt">28.2件/週 / 目標27.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:100.0%"></div>
                 <div class="dept-target-line" style="width:96.5%"></div>
@@ -1462,7 +1479,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="耳鼻咽喉科">耳鼻咽喉科</div>
-              <div class="dept-act-tgt">350件 / 目標372.6件</div>
+              <div class="dept-act-tgt">7.6件/週 / 目標8.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:27.0%"></div>
                 <div class="dept-target-line" style="width:28.7%"></div>
@@ -1473,7 +1490,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="脳神経外科">脳神経外科</div>
-              <div class="dept-act-tgt">124件 / 目標138.0件</div>
+              <div class="dept-act-tgt">2.7件/週 / 目標3.0件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:9.6%"></div>
                 <div class="dept-target-line" style="width:10.6%"></div>
@@ -1484,7 +1501,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="一般消化器外科">一般消化器外科</div>
-              <div class="dept-act-tgt">579件 / 目標648.6件</div>
+              <div class="dept-act-tgt">12.6件/週 / 目標14.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:44.6%"></div>
                 <div class="dept-target-line" style="width:50.0%"></div>
@@ -1495,7 +1512,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="産婦人科">産婦人科</div>
-              <div class="dept-act-tgt">503件 / 目標575.0件</div>
+              <div class="dept-act-tgt">10.9件/週 / 目標12.5件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:38.8%"></div>
                 <div class="dept-target-line" style="width:44.3%"></div>
@@ -1506,7 +1523,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="乳腺外科">乳腺外科</div>
-              <div class="dept-act-tgt">298件 / 目標372.6件</div>
+              <div class="dept-act-tgt">6.5件/週 / 目標8.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:23.0%"></div>
                 <div class="dept-target-line" style="width:28.7%"></div>
@@ -1517,7 +1534,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="呼吸器外科">呼吸器外科</div>
-              <div class="dept-act-tgt">100件 / 目標128.8件</div>
+              <div class="dept-act-tgt">2.2件/週 / 目標2.8件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:7.7%"></div>
                 <div class="dept-target-line" style="width:9.9%"></div>
@@ -1528,7 +1545,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="形成外科">形成外科</div>
-              <div class="dept-act-tgt">106件 / 目標138.0件</div>
+              <div class="dept-act-tgt">2.3件/週 / 目標3.0件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:8.2%"></div>
                 <div class="dept-target-line" style="width:10.6%"></div>
@@ -1539,7 +1556,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="心臓血管外科">心臓血管外科</div>
-              <div class="dept-act-tgt">63件 / 目標96.6件</div>
+              <div class="dept-act-tgt">1.4件/週 / 目標2.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:4.9%"></div>
                 <div class="dept-target-line" style="width:7.4%"></div>
@@ -1547,11 +1564,12 @@
               <div class="dept-rate">65%</div>
               <div class="dept-badge">🔴</div>
             </div></div>
-            <!-- ローリング用パネル -->
-            <div class="dept-panel" id="dept-panel-fy-rolling" style="display:none">
+            <!-- rolling パネル: 直近365日モード時に表示 -->
+            <div class="dept-panel" id="dept-panel-fy-rolling"
+                 style="display:none">
             <div class="dept-row">
               <div class="dept-name achieved" title="皮膚科">皮膚科</div>
-              <div class="dept-act-tgt">82件 / 目標62.6件</div>
+              <div class="dept-act-tgt">1.6件/週 / 目標1.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:5.6%"></div>
                 <div class="dept-target-line" style="width:4.2%"></div>
@@ -1562,7 +1580,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="歯科口腔外科">歯科口腔外科</div>
-              <div class="dept-act-tgt">184件 / 目標166.9件</div>
+              <div class="dept-act-tgt">3.5件/週 / 目標3.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:12.5%"></div>
                 <div class="dept-target-line" style="width:11.3%"></div>
@@ -1573,7 +1591,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="整形外科">整形外科</div>
-              <div class="dept-act-tgt">1473件 / 目標1418.3件</div>
+              <div class="dept-act-tgt">28.2件/週 / 目標27.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:100.0%"></div>
                 <div class="dept-target-line" style="width:96.3%"></div>
@@ -1584,7 +1602,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="泌尿器科">泌尿器科</div>
-              <div class="dept-act-tgt">539件 / 目標531.9件</div>
+              <div class="dept-act-tgt">10.3件/週 / 目標10.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:36.6%"></div>
                 <div class="dept-target-line" style="width:36.1%"></div>
@@ -1595,7 +1613,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="耳鼻咽喉科">耳鼻咽喉科</div>
-              <div class="dept-act-tgt">403件 / 目標422.4件</div>
+              <div class="dept-act-tgt">7.7件/週 / 目標8.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:27.4%"></div>
                 <div class="dept-target-line" style="width:28.7%"></div>
@@ -1606,7 +1624,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="一般消化器外科">一般消化器外科</div>
-              <div class="dept-act-tgt">656件 / 目標735.2件</div>
+              <div class="dept-act-tgt">12.6件/週 / 目標14.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:44.5%"></div>
                 <div class="dept-target-line" style="width:49.9%"></div>
@@ -1617,7 +1635,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="産婦人科">産婦人科</div>
-              <div class="dept-act-tgt">578件 / 目標651.8件</div>
+              <div class="dept-act-tgt">11.1件/週 / 目標12.5件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:39.2%"></div>
                 <div class="dept-target-line" style="width:44.2%"></div>
@@ -1628,7 +1646,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="脳神経外科">脳神経外科</div>
-              <div class="dept-act-tgt">138件 / 目標156.4件</div>
+              <div class="dept-act-tgt">2.6件/週 / 目標3.0件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:9.4%"></div>
                 <div class="dept-target-line" style="width:10.6%"></div>
@@ -1639,7 +1657,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="呼吸器外科">呼吸器外科</div>
-              <div class="dept-act-tgt">118件 / 目標146.0件</div>
+              <div class="dept-act-tgt">2.3件/週 / 目標2.8件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:8.0%"></div>
                 <div class="dept-target-line" style="width:9.9%"></div>
@@ -1650,7 +1668,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="乳腺外科">乳腺外科</div>
-              <div class="dept-act-tgt">339件 / 目標422.4件</div>
+              <div class="dept-act-tgt">6.5件/週 / 目標8.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:23.0%"></div>
                 <div class="dept-target-line" style="width:28.7%"></div>
@@ -1661,7 +1679,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="形成外科">形成外科</div>
-              <div class="dept-act-tgt">116件 / 目標156.4件</div>
+              <div class="dept-act-tgt">2.2件/週 / 目標3.0件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:7.9%"></div>
                 <div class="dept-target-line" style="width:10.6%"></div>
@@ -1672,7 +1690,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="心臓血管外科">心臓血管外科</div>
-              <div class="dept-act-tgt">74件 / 目標109.5件</div>
+              <div class="dept-act-tgt">1.4件/週 / 目標2.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:5.0%"></div>
                 <div class="dept-target-line" style="width:7.4%"></div>
@@ -1680,11 +1698,12 @@
               <div class="dept-rate">68%</div>
               <div class="dept-badge">🔴</div>
             </div></div>
-            <!-- 通常表示パネル（初期表示） -->
-            <div class="dept-panel" id="dept-panel-fy">
+            <!-- dept-panel-fy: annual/rolling がない場合のフォールバック -->
+            <div class="dept-panel" id="dept-panel-fy"
+                 style="display:none">
             <div class="dept-row">
               <div class="dept-name achieved" title="皮膚科">皮膚科</div>
-              <div class="dept-act-tgt">74件 / 目標55.2件</div>
+              <div class="dept-act-tgt">1.6件/週 / 目標1.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:5.7%"></div>
                 <div class="dept-target-line" style="width:4.3%"></div>
@@ -1695,7 +1714,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="歯科口腔外科">歯科口腔外科</div>
-              <div class="dept-act-tgt">167件 / 目標147.2件</div>
+              <div class="dept-act-tgt">3.6件/週 / 目標3.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:12.9%"></div>
                 <div class="dept-target-line" style="width:11.3%"></div>
@@ -1706,7 +1725,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="泌尿器科">泌尿器科</div>
-              <div class="dept-act-tgt">494件 / 目標469.2件</div>
+              <div class="dept-act-tgt">10.7件/週 / 目標10.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:38.1%"></div>
                 <div class="dept-target-line" style="width:36.2%"></div>
@@ -1717,7 +1736,7 @@
 
             <div class="dept-row">
               <div class="dept-name achieved" title="整形外科">整形外科</div>
-              <div class="dept-act-tgt">1297件 / 目標1251.2件</div>
+              <div class="dept-act-tgt">28.2件/週 / 目標27.2件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill achieved" style="width:100.0%"></div>
                 <div class="dept-target-line" style="width:96.5%"></div>
@@ -1728,7 +1747,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="耳鼻咽喉科">耳鼻咽喉科</div>
-              <div class="dept-act-tgt">350件 / 目標372.6件</div>
+              <div class="dept-act-tgt">7.6件/週 / 目標8.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:27.0%"></div>
                 <div class="dept-target-line" style="width:28.7%"></div>
@@ -1739,7 +1758,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="脳神経外科">脳神経外科</div>
-              <div class="dept-act-tgt">124件 / 目標138.0件</div>
+              <div class="dept-act-tgt">2.7件/週 / 目標3.0件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:9.6%"></div>
                 <div class="dept-target-line" style="width:10.6%"></div>
@@ -1750,7 +1769,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="一般消化器外科">一般消化器外科</div>
-              <div class="dept-act-tgt">579件 / 目標648.6件</div>
+              <div class="dept-act-tgt">12.6件/週 / 目標14.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:44.6%"></div>
                 <div class="dept-target-line" style="width:50.0%"></div>
@@ -1761,7 +1780,7 @@
 
             <div class="dept-row">
               <div class="dept-name near" title="産婦人科">産婦人科</div>
-              <div class="dept-act-tgt">503件 / 目標575.0件</div>
+              <div class="dept-act-tgt">10.9件/週 / 目標12.5件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill near" style="width:38.8%"></div>
                 <div class="dept-target-line" style="width:44.3%"></div>
@@ -1772,7 +1791,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="乳腺外科">乳腺外科</div>
-              <div class="dept-act-tgt">298件 / 目標372.6件</div>
+              <div class="dept-act-tgt">6.5件/週 / 目標8.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:23.0%"></div>
                 <div class="dept-target-line" style="width:28.7%"></div>
@@ -1783,7 +1802,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="呼吸器外科">呼吸器外科</div>
-              <div class="dept-act-tgt">100件 / 目標128.8件</div>
+              <div class="dept-act-tgt">2.2件/週 / 目標2.8件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:7.7%"></div>
                 <div class="dept-target-line" style="width:9.9%"></div>
@@ -1794,7 +1813,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="形成外科">形成外科</div>
-              <div class="dept-act-tgt">106件 / 目標138.0件</div>
+              <div class="dept-act-tgt">2.3件/週 / 目標3.0件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:8.2%"></div>
                 <div class="dept-target-line" style="width:10.6%"></div>
@@ -1805,7 +1824,7 @@
 
             <div class="dept-row">
               <div class="dept-name below" title="心臓血管外科">心臓血管外科</div>
-              <div class="dept-act-tgt">63件 / 目標96.6件</div>
+              <div class="dept-act-tgt">1.4件/週 / 目標2.1件</div>
               <div class="dept-bar-wrap">
                 <div class="dept-bar-fill below" style="width:4.9%"></div>
                 <div class="dept-target-line" style="width:7.4%"></div>
