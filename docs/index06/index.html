@@ -1,1531 +1,1438 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>病棟レポート</title>
 
-    <!DOCTYPE html>
-    <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>病棟レポート</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K6XTL1DM13"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-K6XTL1DM13');
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ══ DESIGN TOKENS ══ */
+        :root {
+            --bg-page:      #F0F2F5;
+            --bg-card:      #FFFFFF;
+            --bg-elevated:  #F7F9FC;
+            --bg-header:    #1D2B3A;
+            --border:       #DCE1E9;
+            --border-mid:   #C4CCD8;
+            --accent:       #3A6EA5;
+            --accent-light: #EEF3FA;
+            --accent-hover: #2F5A8A;
+            --text-primary:   #1A2535;
+            --text-secondary: #5A6A82;
+            --text-muted:     #94A3B8;
+            --success:      #1A9E6A;
+            --success-bg:   #EDFAF4;
+            --warning:      #C87A00;
+            --warning-bg:   #FEF6E4;
+            --danger:       #C0293B;
+            --danger-bg:    #FEF0F2;
+            --font-ui:   'Noto Sans JP', 'Hiragino Sans', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+            --shadow-sm: 0 1px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 14px rgba(0,0,0,0.09);
+            --transition: all 0.15s ease;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--bg-page);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ══ STICKY HEADER ══ */
+        .site-header {
+            background: var(--bg-header);
+            color: #E8EEF5;
+            padding: 0 32px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky; top: 0; z-index: 200;
+            border-bottom: 2px solid var(--accent);
+            gap: 16px;
+        }
+        .header-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+        .header-badge {
+            background: var(--accent); color: #fff;
+            font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+        }
+        .header-title { font-size: 1.0rem; font-weight: 600; color: #E8EEF5; white-space: nowrap; }
+        .header-meta { font-size: 0.72rem; color: #7A90A8; font-family: var(--font-mono); }
+        .header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-header {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 6px 14px; border-radius: var(--r-sm);
+            font-size: 0.78rem; font-weight: 500; cursor: pointer;
+            transition: var(--transition); text-decoration: none;
+            border: 1px solid transparent; font-family: var(--font-ui); line-height: 1;
+        }
+        .btn-solid { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .btn-solid:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+        /* ══ LAYOUT ══ */
+        .container { max-width: 1400px; margin: 0 auto; padding: 28px 32px 48px; }
+
+        /* ══ SUMMARY / SELECTION SECTIONS ══ */
+        .summary-section, .department-selection-section {
+            background: var(--bg-card);
+            border-radius: var(--r-lg);
+            padding: clamp(16px, 3vw, 28px);
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .summary-title, .selection-title {
+            font-size: clamp(0.88rem, 2vw, 1.0rem);
+            margin-bottom: 18px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* ══ WARD DETAIL ══ */
+        .ward-detail {
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        .ward-detail.active { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .department-header {
+            background: var(--bg-card);
+            border-radius: var(--r-lg);
+            padding: clamp(14px, 3vw, 22px);
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+        }
+
+        .department-name {
+            font-size: clamp(1.0rem, 2.5vw, 1.25rem);
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .department-info { color: var(--text-muted); font-size: 0.76rem; }
+
+        /* ══ DEPT SELECTION CARDS ══ */
+        .department-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+            gap: 12px;
+        }
+
+        .department-card {
+            background: var(--bg-card);
+            border-radius: var(--r-md);
+            padding: 14px 14px 14px 16px;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--border-mid);
+            cursor: pointer;
+            transition: var(--transition);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .department-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .department-card.active {
+            border-color: var(--accent);
+            border-left-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .department-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-metric {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            margin-bottom: 4px;
+        }
+
+        .card-metric .label { color: var(--text-muted); flex-shrink: 1; margin-right: 8px; }
+        .card-metric .value { font-weight: 600; font-family: var(--font-mono); flex-shrink: 0; }
+
+        /* ══ METRIC CARDS CONTAINER ══ */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        /* ══ METRIC CARDS ══ */
+        .gross-profit-card {
+            background: var(--bg-card);
+            border-radius: var(--r-lg);
+            padding: clamp(14px, 2vw, 20px);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--border-mid);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .gross-profit-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .card-title { display: flex; align-items: center; gap: 6px; }
+
+        .dept-name {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .main-metrics {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .primary-metric { flex: 1; min-width: 110px; }
+
+        .metric-value {
+            font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+            font-weight: 700;
+            font-family: var(--font-mono);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: clamp(0.6rem, 1vw, 0.68rem);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+        }
+
+        .secondary-metric {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: var(--r-sm);
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .metric-value-small {
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .metric-label-small {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+        }
+
+        /* Progress bar */
+        .progress-container { margin: 12px 0 16px 0; }
+
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: var(--bg-elevated);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.6s ease;
+        }
+
+        /* Metrics grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .metric-item {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            padding: 7px 8px;
+            border-radius: var(--r-sm);
+            text-align: center;
+        }
+
+        .item-value {
+            font-size: 0.86rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            word-break: break-word;
+        }
+
+        .trend-value { font-size: 0.76rem; font-family: var(--font-ui); }
+
+        .item-label {
+            font-size: 0.58rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            word-break: keep-all;
+        }
+
+        /* ══ RESPONSIVE ══ */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .cards-container { grid-template-columns: repeat(2, 1fr); }
+            .department-card-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 767px) {
+            body { padding: 0; }
+            .site-header { padding: 8px 14px; height: auto; min-height: 52px; flex-wrap: wrap; }
+            .header-meta { display: none; }
+            .container { padding: 16px 12px 32px; }
+            .summary-section, .department-selection-section { padding: 14px; margin-bottom: 14px; }
+            .cards-container { grid-template-columns: 1fr; gap: 12px; }
+            .department-card-grid { grid-template-columns: 1fr; }
+            .main-metrics { flex-direction: column; align-items: stretch; gap: 10px; }
+            .primary-metric { width: 100%; }
+            .secondary-metric { width: fit-content; align-self: flex-start; }
+            .metrics-grid { grid-template-columns: 1fr; gap: 6px; }
+            .department-card:active { transform: scale(0.98); }
+            .ward-detail.active { scroll-margin-top: 10px; }
+        }
+
+        @media (max-width: 767px) and (orientation: landscape) {
+            .cards-container { grid-template-columns: repeat(2, 1fr); }
+            .department-card-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (min-width: 1400px) {
+            .cards-container { grid-template-columns: repeat(3, 1fr); }
+            .department-card-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+
+        @media print {
+            .site-header { position: static; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .btn-header { display: none; }
+            .ward-detail { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-left">
+        <span class="header-badge">病棟</span>
+        <span class="header-title">🏥 病棟レポート</span>
+        <span class="header-meta">📅 2026年02月19日 ｜ 📊 評価期間: 今年度 (2025/04/01～)</span>
+    </div>
+    <div class="header-actions">
+        <a href="../index.html" class="btn-header btn-solid">↑ ポータルTOPへ</a>
+    </div>
+</header>
+
+<div class="container">
+    <main>
         
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-K6XTL1DM13"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-K6XTL1DM13');
-        </script>
-    
-        <style>
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            
-            :root {
-                --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', 'Yu Gothic', Meiryo, sans-serif;
-                --bg-color: #f4f7f9;
-                --card-bg: #ffffff;
-                --text-color: #333;
-                --light-text: #6c757d;
-                --border-color: #e9ecef;
-                --accent-color: #0d6efd;
-                --green: #198754;
-                --red: #dc3545;
-                --orange: #fd7e14;
-                --purple: #6f42c1;
-                --progress-bg: #e9ecef;
-                --hover-bg: #f8f9fa;
-            }
-            
-            body { 
-                font-family: var(--font-family); 
-                background-color: var(--bg-color); 
-                color: var(--text-color); 
-                margin: 0; 
-                padding: 10px;
-                line-height: 1.6;
-            }
-            
-            .container { 
-                max-width: 1400px; 
-                margin: 0 auto; 
-                padding: 0 10px;
-            }
-            
-            header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 15px;
-                text-align: center;
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-                border-bottom: 2px solid var(--border-color);
-            }
-
-            .header-title-group {
-                flex-grow: 1;
-            }
-
-            .portal-home-button {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 10px 18px;
-                background-color: #f8f9fa;
-                color: #495057;
-                text-decoration: none;
-                border-radius: 8px;
-                font-size: clamp(0.8rem, 1.8vw, 0.9rem);
-                font-weight: 600;
-                transition: all 0.2s ease;
-                border: 1px solid #dee2e6;
-                white-space: nowrap;
-            }
-
-            .portal-home-button:hover {
-                background-color: #e9ecef;
-                transform: translateY(-2px);
-                box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            }
-            
-            h1 { 
-                font-size: clamp(1.5rem, 4vw, 2.5rem); 
-                color: var(--accent-color); 
-                margin-bottom: 10px; 
-                font-weight: 700; 
-            }
-            
-            .subtitle { 
-                color: var(--light-text); 
-                font-size: clamp(0.9rem, 2vw, 1.1rem);
-                word-wrap: break-word;
-            }
-            
-            .summary-section, .department-selection-section { 
-                background: var(--card-bg); 
-                border-radius: 16px; 
-                padding: clamp(15px, 3vw, 30px); 
-                margin-bottom: 20px; 
-                box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            }
-            
-            .summary-title, .selection-title { 
-                font-size: clamp(1.3rem, 3vw, 1.8rem); 
-                margin-bottom: 20px; 
-                color: var(--text-color); 
-                display: flex; 
-                align-items: center; 
-                gap: 10px; 
-                font-weight: 600; 
-            }
-            
-            .ward-detail { /* department-detail を ward-detail に変更 */
-                display: none; 
-                animation: slideIn 0.5s ease; 
-            }
-            
-            .ward-detail.active { /* department-detail を ward-detail に変更 */
-                display: block; 
-            }
-            
-            @keyframes slideIn { 
-                from { opacity: 0; transform: translateY(20px); } 
-                to { opacity: 1; transform: translateY(0); } 
-            }
-            
-            .department-header { 
-                background: var(--card-bg); 
-                border-radius: 12px; 
-                padding: clamp(15px, 3vw, 25px); 
-                margin-bottom: 20px; 
-                box-shadow: 0 5px 15px rgba(0,0,0,0.08); 
-                border-left: 5px solid var(--accent-color); 
-            }
-            
-            .department-name { 
-                font-size: clamp(1.3rem, 3vw, 2rem); 
-                color: var(--text-color); 
-                margin-bottom: 10px; 
-                font-weight: 600; 
-            }
-            
-            .department-info { 
-                color: var(--light-text); 
-                font-size: clamp(0.9rem, 2vw, 1rem); 
-            }
-            
-            .cards-container { 
-                display: grid; 
-                grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-                gap: 20px; 
-                margin-bottom: 30px; 
-            }
-
-            .department-card-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-                gap: 15px;
-            }
-            
-            .department-card {
-                background: var(--card-bg);
-                border-radius: 8px;
-                padding: 15px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.07);
-                border-left: 5px solid var(--light-text);
-                cursor: pointer;
-                transition: all 0.3s ease;
-                -webkit-tap-highlight-color: transparent;
-            }
-            
-            .department-card:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            }
-            
-            .department-card.active {
-                box-shadow: 0 0 0 3px var(--accent-color);
-                border-color: var(--accent-color) !important;
-            }
-            
-            .department-card h4 {
-                margin: 0 0 12px 0;
-                font-size: clamp(1rem, 2vw, 1.15rem);
-                color: var(--text-color);
-            }
-            
-            .card-metric {
-                display: flex;
-                justify-content: space-between;
-                font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-                margin-bottom: 5px;
-            }
-            
-            .card-metric .label { 
-                color: var(--light-text); 
-                flex-shrink: 1;
-                margin-right: 10px;
-            }
-            
-            .card-metric .value { 
-                font-weight: 600; 
-                flex-shrink: 0;
-            }
-            
-            .gross-profit-card { 
-                background: var(--card-bg); 
-                border-radius: 12px; 
-                padding: clamp(15px, 2vw, 20px); 
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-                transition: all 0.3s ease; 
-                position: relative; 
-                margin-bottom: 20px; 
-                min-height: 280px;
-            }
-            
-            .gross-profit-card:hover { 
-                transform: translateY(-2px); 
-                box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
-            }
-            
-            .card-header { 
-                display: flex; 
-                justify-content: flex-start; 
-                align-items: flex-start; 
-                margin-bottom: 15px; 
-            }
-            
-            .card-title { 
-                display: flex; 
-                align-items: center; 
-                gap: 8px; 
-            }
-            
-            .dept-name { 
-                font-size: clamp(0.95rem, 2vw, 1.1rem); 
-                font-weight: 600; 
-                color: var(--text-color); 
-            }
-            
-            .main-metrics { 
-                display: flex; 
-                align-items: flex-end; 
-                gap: 15px; 
-                margin-bottom: 15px; 
-                flex-wrap: wrap;
-            }
-            
-            .primary-metric { 
-                flex: 1; 
-                min-width: 120px;
-            }
-            
-            .metric-value { 
-                font-size: clamp(1.8rem, 4vw, 2.5rem); 
-                font-weight: 700; 
-                line-height: 1; 
-                margin-bottom: 5px; 
-            }
-            
-            .metric-label { 
-                font-size: clamp(0.65rem, 1.2vw, 0.75rem); 
-                color: var(--light-text); 
-                text-transform: uppercase; 
-                letter-spacing: 0.5px; 
-            }
-            
-            .secondary-metric { 
-                background: var(--hover-bg); 
-                padding: 8px 12px; 
-                border-radius: 6px; 
-                text-align: center; 
-                min-width: 70px; 
-            }
-            
-            .metric-value-small { 
-                font-size: clamp(0.9rem, 1.8vw, 1rem); 
-                font-weight: 600; 
-                color: var(--text-color); 
-                margin-bottom: 2px; 
-            }
-            
-            .metric-label-small { 
-                font-size: clamp(0.6rem, 1vw, 0.65rem); 
-                color: var(--light-text); 
-                text-transform: uppercase; 
-            }
-            
-            .progress-container { 
-                margin: 15px 0 20px 0; 
-            }
-            
-            .progress-bar { 
-                width: 100%; 
-                height: 6px; 
-                background-color: #e5e7eb; 
-                border-radius: 3px; 
-                overflow: hidden; 
-            }
-            
-            .progress-fill { 
-                height: 100%; 
-                border-radius: 3px; 
-                transition: width 0.6s ease; 
-            }
-            
-            .metrics-grid { 
-                display: grid; 
-                grid-template-columns: repeat(2, 1fr); 
-                gap: 10px; 
-            }
-            
-            .metric-item { 
-                background: var(--hover-bg); 
-                padding: 8px 10px; 
-                border-radius: 6px; 
-                text-align: center; 
-            }
-            
-            .item-value { 
-                font-size: clamp(0.8rem, 1.5vw, 0.9rem); 
-                font-weight: 600; 
-                color: var(--text-color); 
-                margin-bottom: 2px; 
-                word-break: break-word;
-            }
-            
-            .trend-value { 
-                font-size: clamp(0.7rem, 1.3vw, 0.8rem); 
-            }
-            
-            .item-label { 
-                font-size: clamp(0.55rem, 1vw, 0.65rem); 
-                color: var(--light-text); 
-                text-transform: uppercase; 
-                letter-spacing: 0.3px; 
-                word-break: keep-all;
-            }
-            
-            @media (min-width: 768px) and (max-width: 1024px) {
-                .container {
-                    padding: 0 20px;
-                }
-                .cards-container {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                .department-card-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-            }
-            
-            @media (max-width: 767px) {
-                body {
-                    padding: 5px;
-                }
-                .container {
-                    padding: 0 5px;
-                }
-                header {
-                    flex-direction: column;
-                    justify-content: center;
-                    gap: 10px;
-                    margin-bottom: 15px;
-                    padding-bottom: 10px;
-                }
-                .portal-home-button {
-                    order: -1;
-                    width: 100%;
-                    justify-content: center;
-                }
-                .summary-section, .department-selection-section {
-                    padding: 15px;
-                    margin-bottom: 15px;
-                    border-radius: 12px;
-                }
-                .cards-container {
-                    grid-template-columns: 1fr;
-                    gap: 15px;
-                }
-                .department-card-grid {
-                    grid-template-columns: 1fr;
-                }
-                .main-metrics {
-                    flex-direction: column;
-                    align-items: stretch;
-                    gap: 10px;
-                }
-                .primary-metric {
-                    width: 100%;
-                }
-                .secondary-metric {
-                    width: fit-content;
-                    align-self: flex-start;
-                }
-                .metrics-grid {
-                    grid-template-columns: 1fr;
-                    gap: 8px;
-                }
-                .gross-profit-card {
-                    min-height: auto;
-                }
-                .department-card:active {
-                    transform: scale(0.98);
-                }
-                .ward-detail.active { /* department-detail を ward-detail に変更 */
-                    scroll-margin-top: 10px;
-                }
-            }
-            
-            @media (max-width: 767px) and (orientation: landscape) {
-                .cards-container {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                .department-card-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                h1 {
-                    font-size: 1.8rem;
-                }
-                .metric-value {
-                    font-size: 2rem;
-                }
-            }
-            
-            @media (min-width: 1400px) {
-                .cards-container {
-                    grid-template-columns: repeat(3, 1fr);
-                }
-                .department-card-grid {
-                    grid-template-columns: repeat(4, 1fr);
-                }
-            }
-            
-            @media (prefers-reduced-motion: reduce) {
-                * {
-                    animation-duration: 0.01ms !important;
-                    animation-iteration-count: 1 !important;
-                    transition-duration: 0.01ms !important;
-                }
-            }
-            
-            @media (prefers-color-scheme: dark) {
-                :root {
-                    --bg-color: #1a1a1a;
-                    --card-bg: #2d2d2d;
-                    --text-color: #e0e0e0;
-                    --light-text: #a0a0a0;
-                    --border-color: #404040;
-                    --hover-bg: #383838;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <header>
-                <a href="../index.html" class="portal-home-button">🏠 ポータルTOPへ</a>
-                <div class="header-title-group">
-                    <h1>病棟レポート</h1>
-                    <p class="subtitle">
-                        📅 最終更新: 2026年02月19日 | 
-                        📊 評価期間: 今年度 (2025/04/01～)
-                    </p>
-                </div>
-            </header>
-            <main>
-                
         <div class="summary-section">
             <h2 class="summary-title"><span>🏥</span><span>病院全体サマリ</span></h2>
             <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">96.8%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">96.8%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">103.1%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 96.84303350970018%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 96.84303350970018%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">549.1人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">567.0</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">584.7人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">92.9%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">92.9%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">99.7%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 92.85714285714286%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 92.85714285714286%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">357.5人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">385.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">384.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">11.4日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">11.4日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">12.5</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+1.1日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #ef4444;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #C0293B;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
         </div>
         <div class="department-selection-section">
             <h2 class="selection-title"><span>📋</span><span>病棟 個別レポート</span></h2>
-            <p style="margin-bottom: 20px; color: var(--light-text); text-align: center; font-size: 0.9rem;">
+            <p style="margin-bottom: 20px; color: var(--text-muted); text-align: center; font-size: 0.9rem;">
                 いずれかの病棟カードをクリックすると、下に詳細レポートが表示されます。
             </p>
             <div class='department-card-grid'>
-        <div id="card-4B-ICU" class="department-card" onclick="showWard('4B-ICU')" style="border-left: 5px solid #10b981;">
-            <h4 style="color: #10b981;">4B-ICU</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #10b981;">214.8%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #10b981;">330.0%</span></div>
+        <div id="card-4B-ICU" class="department-card" onclick="showWard('4B-ICU')" style="border-left: 5px solid #1A9E6A;">
+            <h4 style="color: #1A9E6A;">4B-ICU</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #1A9E6A;">214.8%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #1A9E6A;">330.0%</span></div>
         </div>
         
-        <div id="card-4階A病棟" class="department-card" onclick="showWard('4階A病棟')" style="border-left: 5px solid #10b981;">
-            <h4 style="color: #10b981;">4階A病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #10b981;">105.6%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #f59e0b;">95.6%</span></div>
+        <div id="card-4階A病棟" class="department-card" onclick="showWard('4階A病棟')" style="border-left: 5px solid #1A9E6A;">
+            <h4 style="color: #1A9E6A;">4階A病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #1A9E6A;">105.6%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C87A00;">95.6%</span></div>
         </div>
         
-        <div id="card-5階A病棟" class="department-card" onclick="showWard('5階A病棟')" style="border-left: 5px solid #f59e0b;">
-            <h4 style="color: #f59e0b;">5階A病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #f59e0b;">98.9%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #10b981;">101.3%</span></div>
+        <div id="card-5階A病棟" class="department-card" onclick="showWard('5階A病棟')" style="border-left: 5px solid #C87A00;">
+            <h4 style="color: #C87A00;">5階A病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C87A00;">98.9%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #1A9E6A;">101.3%</span></div>
         </div>
         
-        <div id="card-2階B病棟" class="department-card" onclick="showWard('2階B病棟')" style="border-left: 5px solid #f59e0b;">
-            <h4 style="color: #f59e0b;">2階B病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #f59e0b;">97.2%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #ef4444;">91.7%</span></div>
+        <div id="card-2階B病棟" class="department-card" onclick="showWard('2階B病棟')" style="border-left: 5px solid #C87A00;">
+            <h4 style="color: #C87A00;">2階B病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C87A00;">97.2%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C0293B;">91.7%</span></div>
         </div>
         
-        <div id="card-4階C病棟" class="department-card" onclick="showWard('4階C病棟')" style="border-left: 5px solid #f59e0b;">
-            <h4 style="color: #f59e0b;">4階C病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #f59e0b;">96.1%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #10b981;">105.3%</span></div>
+        <div id="card-4階C病棟" class="department-card" onclick="showWard('4階C病棟')" style="border-left: 5px solid #C87A00;">
+            <h4 style="color: #C87A00;">4階C病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C87A00;">96.1%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #1A9E6A;">105.3%</span></div>
         </div>
         
-        <div id="card-7階A病棟" class="department-card" onclick="showWard('7階A病棟')" style="border-left: 5px solid #f59e0b;">
-            <h4 style="color: #f59e0b;">7階A病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #f59e0b;">96.1%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #ef4444;">94.8%</span></div>
+        <div id="card-7階A病棟" class="department-card" onclick="showWard('7階A病棟')" style="border-left: 5px solid #C87A00;">
+            <h4 style="color: #C87A00;">7階A病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C87A00;">96.1%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C0293B;">94.8%</span></div>
         </div>
         
-        <div id="card-6階A病棟" class="department-card" onclick="showWard('6階A病棟')" style="border-left: 5px solid #f59e0b;">
-            <h4 style="color: #f59e0b;">6階A病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #f59e0b;">95.6%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #ef4444;">85.7%</span></div>
+        <div id="card-6階A病棟" class="department-card" onclick="showWard('6階A病棟')" style="border-left: 5px solid #C87A00;">
+            <h4 style="color: #C87A00;">6階A病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C87A00;">95.6%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C0293B;">85.7%</span></div>
         </div>
         
-        <div id="card-6階B病棟" class="department-card" onclick="showWard('6階B病棟')" style="border-left: 5px solid #f59e0b;">
-            <h4 style="color: #f59e0b;">6階B病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #f59e0b;">95.6%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #f59e0b;">95.4%</span></div>
+        <div id="card-6階B病棟" class="department-card" onclick="showWard('6階B病棟')" style="border-left: 5px solid #C87A00;">
+            <h4 style="color: #C87A00;">6階B病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C87A00;">95.6%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C87A00;">95.4%</span></div>
         </div>
         
-        <div id="card-9階B病棟" class="department-card" onclick="showWard('9階B病棟')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">9階B病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">94.5%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #ef4444;">94.4%</span></div>
+        <div id="card-9階B病棟" class="department-card" onclick="showWard('9階B病棟')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">9階B病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">94.5%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C0293B;">94.4%</span></div>
         </div>
         
-        <div id="card-8階A病棟" class="department-card" onclick="showWard('8階A病棟')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">8階A病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">94.5%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #ef4444;">90.7%</span></div>
+        <div id="card-8階A病棟" class="department-card" onclick="showWard('8階A病棟')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">8階A病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">94.5%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C0293B;">90.7%</span></div>
         </div>
         
-        <div id="card-3階A病棟" class="department-card" onclick="showWard('3階A病棟')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">3階A病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">92.3%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #10b981;">110.3%</span></div>
+        <div id="card-3階A病棟" class="department-card" onclick="showWard('3階A病棟')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">3階A病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">92.3%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #1A9E6A;">110.3%</span></div>
         </div>
         
-        <div id="card-5階B病棟" class="department-card" onclick="showWard('5階B病棟')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">5階B病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">90.7%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #f59e0b;">99.7%</span></div>
+        <div id="card-5階B病棟" class="department-card" onclick="showWard('5階B病棟')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">5階B病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">90.7%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C87A00;">99.7%</span></div>
         </div>
         
-        <div id="card-7階B病棟" class="department-card" onclick="showWard('7階B病棟')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">7階B病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">89.5%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #10b981;">119.7%</span></div>
+        <div id="card-7階B病棟" class="department-card" onclick="showWard('7階B病棟')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">7階B病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">89.5%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #1A9E6A;">119.7%</span></div>
         </div>
         
-        <div id="card-2階A病棟" class="department-card" onclick="showWard('2階A病棟')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">2階A病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">89.5%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #ef4444;">64.7%</span></div>
+        <div id="card-2階A病棟" class="department-card" onclick="showWard('2階A病棟')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">2階A病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">89.5%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C0293B;">64.7%</span></div>
         </div>
         
-        <div id="card-9階A病棟" class="department-card" onclick="showWard('9階A病棟')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">9階A病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">84.6%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #10b981;">145.5%</span></div>
+        <div id="card-9階A病棟" class="department-card" onclick="showWard('9階A病棟')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">9階A病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">84.6%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #1A9E6A;">145.5%</span></div>
         </div>
         
-        <div id="card-8階B病棟" class="department-card" onclick="showWard('8階B病棟')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">8階B病棟</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">76.2%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #ef4444;">51.7%</span></div>
+        <div id="card-8階B病棟" class="department-card" onclick="showWard('8階B病棟')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">8階B病棟</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">76.2%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C0293B;">51.7%</span></div>
         </div>
         
-        <div id="card-4B-HCU" class="department-card" onclick="showWard('4B-HCU')" style="border-left: 5px solid #ef4444;">
-            <h4 style="color: #ef4444;">4B-HCU</h4>
-            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #ef4444;">73.1%</span></div>
-            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #ef4444;">4.7%</span></div>
+        <div id="card-4B-HCU" class="department-card" onclick="showWard('4B-HCU')" style="border-left: 5px solid #C0293B;">
+            <h4 style="color: #C0293B;">4B-HCU</h4>
+            <div class="card-metric"><span class="label">在院患者期間達成率:</span><span class="value" style="color: #C0293B;">73.1%</span></div>
+            <div class="card-metric"><span class="label">新入院期間達成率:</span><span class="value" style="color: #C0293B;">4.7%</span></div>
         </div>
         </div>
         </div>
         <div id="ward-details-container">
     <div id="4B-ICU" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #10b981;">
-            <div class="department-name" style="color: #10b981;">🏢 4B-ICU</div>
+        <div class="department-header" style="border-left: 5px solid #1A9E6A;">
+            <div class="department-name" style="color: #1A9E6A;">🏢 4B-ICU</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">214.8%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">214.8%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">105.6%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">11.6人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">5.4</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">5.7人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #ef4444;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #C0293B;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">330.0%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">330.0%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">0.0%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">3.3人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">1.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">0.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #ef4444;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #C0293B;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">20.7日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">20.7日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">0.0</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">-20.7日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #10b981;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #1A9E6A;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="4階A病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #10b981;">
-            <div class="department-name" style="color: #10b981;">🏢 4階A病棟</div>
+        <div class="department-header" style="border-left: 5px solid #1A9E6A;">
+            <div class="department-name" style="color: #1A9E6A;">🏢 4階A病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">105.6%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">105.6%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">113.0%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">5.7人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">5.4</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">6.1人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">95.6%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">95.6%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">96.3%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 95.55555555555556%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 95.55555555555556%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">25.8人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">27.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">26.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">15.6日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">15.6日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">14.3</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">-1.3日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #10b981;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #1A9E6A;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="5階A病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #f59e0b;">
-            <div class="department-name" style="color: #f59e0b;">🏢 5階A病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C87A00;">
+            <div class="department-name" style="color: #C87A00;">🏢 5階A病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">98.9%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">98.9%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">106.3%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 98.86621315192744%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 98.86621315192744%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">43.6人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">44.1</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">46.9人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">101.3%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">101.3%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">107.7%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">39.5人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">39.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">42.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">6.7日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">6.7日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">8.6</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+1.9日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #ef4444;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #C0293B;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="2階B病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #f59e0b;">
-            <div class="department-name" style="color: #f59e0b;">🏢 2階B病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C87A00;">
+            <div class="department-name" style="color: #C87A00;">🏢 2階B病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">97.2%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">97.2%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">98.9%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 97.21030042918454%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 97.21030042918454%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">45.3人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">46.6</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">46.1人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">91.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">91.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">83.3%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 91.66666666666666%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 91.66666666666666%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">16.5人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">18.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">15.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #ef4444;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #C0293B;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">16.2日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">16.2日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">17.9</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+1.7日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #ef4444;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #C0293B;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="4階C病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #f59e0b;">
-            <div class="department-name" style="color: #f59e0b;">🏢 4階C病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C87A00;">
+            <div class="department-name" style="color: #C87A00;">🏢 4階C病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">96.1%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">96.1%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">96.7%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 96.11111111111111%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 96.11111111111111%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">17.3人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">18.0</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">17.4人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">105.3%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">105.3%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">120.0%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">15.8人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">15.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">18.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">22.3日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">22.3日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">17.4</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">-4.9日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #10b981;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #1A9E6A;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="7階A病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #f59e0b;">
-            <div class="department-name" style="color: #f59e0b;">🏢 7階A病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C87A00;">
+            <div class="department-name" style="color: #C87A00;">🏢 7階A病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">96.1%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">96.1%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">105.6%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 96.06481481481481%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 96.06481481481481%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">41.5人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">43.2</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">45.6人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">94.8%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">94.8%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">77.8%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 94.81481481481482%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 94.81481481481482%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">25.6人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">27.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">21.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #ef4444;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #C0293B;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">10.4日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">10.4日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">13.3</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+2.9日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #ef4444;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #C0293B;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="6階A病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #f59e0b;">
-            <div class="department-name" style="color: #f59e0b;">🏢 6階A病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C87A00;">
+            <div class="department-name" style="color: #C87A00;">🏢 6階A病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">95.6%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">95.6%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">103.8%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 95.57894736842105%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 95.57894736842105%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">45.4人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">47.5</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">49.3人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">85.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">85.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">104.3%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 85.65217391304347%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 85.65217391304347%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">19.7人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">23.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">24.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">12.7日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">12.7日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">15.0</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+2.3日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #ef4444;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #C0293B;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="6階B病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #f59e0b;">
-            <div class="department-name" style="color: #f59e0b;">🏢 6階B病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C87A00;">
+            <div class="department-name" style="color: #C87A00;">🏢 6階B病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">95.6%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">95.6%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">99.6%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 95.57894736842105%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 95.57894736842105%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">45.4人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">47.5</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">47.3人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">95.4%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">95.4%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">108.3%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 95.41666666666666%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 95.41666666666666%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">22.9人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">24.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">26.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #6b7280;">
+    <div class="gross-profit-card" style="border-left: 4px solid #94A3B8;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #6b7280;">10.9日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #94A3B8;">10.9日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">11.4</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #6b7280;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #94A3B8;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+0.5日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="9階B病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 9階B病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 9階B病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">94.5%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">94.5%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">101.3%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 94.52631578947368%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 94.52631578947368%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">44.9人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">47.5</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">48.1人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">94.4%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">94.4%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">127.8%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 94.44444444444444%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 94.44444444444444%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">17.0人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">18.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">23.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">14.7日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">14.7日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">12.0</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">-2.7日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #10b981;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #1A9E6A;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="8階A病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 8階A病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 8階A病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">94.5%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">94.5%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">100.7%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 94.51754385964912%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 94.51754385964912%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">43.1人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">45.6</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">45.9人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">90.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">90.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">120.0%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 90.66666666666666%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 90.66666666666666%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">13.6人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">15.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">18.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">15.5日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">15.5日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">14.0</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">-1.5日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #10b981;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #1A9E6A;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="3階A病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 3階A病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 3階A病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">92.3%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">92.3%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">94.3%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 92.32456140350878%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 92.32456140350878%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">42.1人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">45.6</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">43.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">110.3%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">110.3%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">100.0%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">33.1人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">30.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">30.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #ef4444;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #C0293B;">下降傾向 📉</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">8.0日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">8.0日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">10.8</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+2.8日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #ef4444;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #C0293B;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="5階B病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 5階B病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 5階B病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">90.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">90.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">95.0%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 90.74074074074075%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 90.74074074074075%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">34.3人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">37.8</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">35.9人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #f59e0b;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C87A00;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #f59e0b;">99.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C87A00;">99.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">106.2%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 99.6875%; background-color: #f59e0b;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 99.6875%; background-color: #C87A00;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">31.9人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">32.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">34.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">7.9日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">7.9日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">9.7</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+1.8日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #ef4444;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #C0293B;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="7階B病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 7階B病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 7階B病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">89.5%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">89.5%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">91.2%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 89.54248366013071%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 89.54248366013071%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">27.4人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">30.6</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">27.9人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">119.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">119.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">136.8%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">45.5人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">38.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">52.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #6b7280;">
+    <div class="gross-profit-card" style="border-left: 4px solid #94A3B8;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #6b7280;">13.3日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #94A3B8;">13.3日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">13.9</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #6b7280;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #94A3B8;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+0.6日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="2階A病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 2階A病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 2階A病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">89.5%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">89.5%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">95.4%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 89.47368421052632%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 89.47368421052632%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">42.5人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">47.5</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">45.3人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">64.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">64.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">62.5%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 64.6875%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 64.6875%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">20.7人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">32.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">20.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">11.3日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">11.3日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">9.6</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">-1.7日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #10b981;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #1A9E6A;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="9階A病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 9階A病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 9階A病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">84.6%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">84.6%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">91.9%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 84.6153846153846%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 84.6153846153846%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">18.7人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">22.1</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">20.3人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">145.5%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">145.5%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">172.7%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">16.0人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">11.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">19.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #6b7280;">
+    <div class="gross-profit-card" style="border-left: 4px solid #94A3B8;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #6b7280;">8.6日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #94A3B8;">8.6日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">8.9</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #6b7280;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #94A3B8;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+0.3日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #6b7280;">安定 ➡️</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #94A3B8;">安定 ➡️</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="8階B病棟" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 8階B病棟</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 8階B病棟</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">76.2%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">76.2%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">99.1%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 76.16822429906543%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 76.16822429906543%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">32.6人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">42.8</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">42.4人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">51.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">51.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">77.8%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 51.66666666666667%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 51.66666666666667%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">9.3人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">18.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">14.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">15.6日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">15.6日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">17.5</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">+1.9日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #ef4444;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #C0293B;">延長傾向 📈</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     
     <div id="4B-HCU" class="ward-detail">
-        <div class="department-header" style="border-left: 5px solid #ef4444;">
-            <div class="department-name" style="color: #ef4444;">🏢 4B-HCU</div>
+        <div class="department-header" style="border-left: 5px solid #C0293B;">
+            <div class="department-name" style="color: #C0293B;">🏢 4B-HCU</div>
             <div class="department-info">病棟 個別レポート指標</div>
         </div>
         <div class='cards-container'>
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">在院患者数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">73.1%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">73.1%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">107.4%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 73.14814814814815%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 73.14814814814815%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">7.9人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">10.8</div><div class="item-label">在院患者数目標</div></div>
             <div class="metric-item"><div class="item-value">11.6人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #ef4444;">
+    <div class="gross-profit-card" style="border-left: 4px solid #C0293B;">
         <div class="card-header"><div class="card-title"><span class="dept-name">週間新入院</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #ef4444;">4.7%</div><div class="metric-label">期間達成率</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #C0293B;">4.7%</div><div class="metric-label">期間達成率</div></div>
             <div class="secondary-metric"><div class="metric-value-small">6.7%</div><div class="metric-label-small">直近週達成率</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 4.666666666666666%; background-color: #ef4444;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 4.666666666666666%; background-color: #C0293B;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">1.4人</div><div class="item-label">期間平均実績</div></div>
             <div class="metric-item"><div class="item-value">30.0</div><div class="item-label">週間新入院目標</div></div>
             <div class="metric-item"><div class="item-value">2.0人</div><div class="item-label">直近週実績</div></div>
-            <div class="metric-item"><div class="item-value trend-value" style="color: #10b981;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
+            <div class="metric-item"><div class="item-value trend-value" style="color: #1A9E6A;">上昇傾向 📈</div><div class="item-label">トレンド</div></div>
         </div>
     </div>
     
-    <div class="gross-profit-card" style="border-left: 4px solid #10b981;">
+    <div class="gross-profit-card" style="border-left: 4px solid #1A9E6A;">
         <div class="card-header"><div class="card-title"><span class="dept-name">平均在院日数</span></div></div>
         <div class="main-metrics">
-            <div class="primary-metric"><div class="metric-value" style="color: #10b981;">170.1日</div><div class="metric-label">期間平均</div></div>
+            <div class="primary-metric"><div class="metric-value" style="color: #1A9E6A;">170.1日</div><div class="metric-label">期間平均</div></div>
             <div class="secondary-metric"><div class="metric-value-small">0.0</div><div class="metric-label-small">直近週実績</div></div>
         </div>
-        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #10b981;"></div></div></div>
+        <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: 100%; background-color: #1A9E6A;"></div></div></div>
         <div class="metrics-grid">
             <div class="metric-item"><div class="item-value">-170.1日</div><div class="item-label">直近週 - 期間平均</div></div>
-            <div class="metric-item"><div class="item-value" style="color: #10b981;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
+            <div class="metric-item"><div class="item-value" style="color: #1A9E6A;">短縮傾向 📉</div><div class="item-label">トレンド評価</div></div>
         </div>
     </div>
     </div>
     </div>
     </div>
     
-            </main>
-        </div>
-        
-        <script>
-            let activeCard = null;
+    </main>
+</div>
 
-            function showWard(wardIdToShow) { // showDepartment を showWard に変更
-                const allDetails = document.querySelectorAll('.ward-detail');
-                allDetails.forEach(detail => {
-                    detail.classList.remove('active');
-                });
-
-                const allCards = document.querySelectorAll('.department-card');
-                allCards.forEach(card => {
-                    card.classList.remove('active');
-                });
-
-                const selectedDetail = document.getElementById(wardIdToShow);
-                if (selectedDetail) {
-                    selectedDetail.classList.add('active');
-                    selectedDetail.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-
-                const selectedCard = document.getElementById('card-' + wardIdToShow);
-                if (selectedCard) {
-                    selectedCard.classList.add('active');
-                }
-            }
-        </script>
-    </body>
-    </html>
-    
+<script>
+    function showWard(wardIdToShow) {
+        document.querySelectorAll('.ward-detail').forEach(d => d.classList.remove('active'));
+        document.querySelectorAll('.department-card').forEach(c => c.classList.remove('active'));
+        const detail = document.getElementById(wardIdToShow);
+        if (detail) { detail.classList.add('active'); detail.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        const card = document.getElementById('card-' + wardIdToShow);
+        if (card) card.classList.add('active');
+    }
+</script>
+</body>
+</html>
