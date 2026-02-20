@@ -310,7 +310,7 @@
 <div class="update-banner">
     <span class="update-banner-dot"></span>
     <span class="update-banner-label">最終更新</span>
-    <span class="update-banner-time">2026年02月20日 11:32</span>
+    <span class="update-banner-time">2026年02月20日 11:45</span>
 </div>
 
 <!-- MAIN -->
@@ -324,7 +324,7 @@
 <!-- FOOTER -->
 <div class="footer">
     <p>経営企画室 2025</p>
-    <p>ページ生成: 2026年02月20日 11:32:14</p>
+    <p>ページ生成: 2026年02月20日 11:45:35</p>
 </div>
 
 <!-- OVERLAY -->
@@ -345,7 +345,7 @@
             <span class="sheet-meta-dot"></span>
             <span id="sheetUpdate"></span>
         </div>
-        <a class="sheet-btn" id="sheetLink" href="#" target="report-view" rel="noopener noreferrer">
+        <a class="sheet-btn" id="sheetLink" href="#" target="_self">
             レポートを開く →
         </a>
     </div>
@@ -353,15 +353,15 @@
 
 <script>
     const reports = [
-        { title: '入院分析', desc: '入院患者数や在院日数、退院管理を病棟・診療科毎に分析、グラフ化（直近12週）', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index01/' },
-        { title: '新入院分析', desc: '新入院患者数の目標達成状況を病棟・診療科毎、期間（短期、長期）で分析、グラフ化（直近24週）', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index02/' },
-        { title: '全麻手術件数', desc: '全身麻酔手術件数を週単位、月単位で分析、グラフ化（直近12週）', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index03/' },
-        { title: '粗利_月次', desc: '入院・外来粗利の目標達成状況を診療科毎に月次でグラフ化（過去6ヵ月間）', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index04/' },
-        { title: '診療科サマリ', desc: '診療科ごとの主要な指標サマリ（直近週）', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index05/' },
-        { title: '病棟サマリ', desc: '病棟ごとの主要な指標サマリ（直近週）', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index06/' },
-        { title: '入院分析_年度', desc: '入院患者数や在院日数を昨年同期間と比較（直近週）', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index07/' },
-        { title: '全麻手術件数_年度', desc: '全身麻酔手術件数の目標達成状況を昨年同期間と比較、グラフ化（年度）', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index08/' },
-        { title: '全麻手術件数_診療科別', desc: '全身麻酔手術件数の目標達成状況を診療科別にグラフ化、分析、年度予測', updated: '2026/02/20 11:32', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index09/' },
+        { title: '入院分析', desc: '入院患者数や在院日数、退院管理を病棟・診療科毎に分析、グラフ化（直近12週）', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index01/' },
+        { title: '新入院分析', desc: '新入院患者数の目標達成状況を病棟・診療科毎、期間（短期、長期）で分析、グラフ化（直近24週）', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index02/' },
+        { title: '全麻手術件数', desc: '全身麻酔手術件数を週単位、月単位で分析、グラフ化（直近12週）', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index03/' },
+        { title: '粗利_月次', desc: '入院・外来粗利を診療科毎に月次分析、グラフ化（過去6ヵ月間）', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index04/' },
+        { title: '診療科サマリ', desc: '診療科ごとの主要な指標サマリ（直近週）', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index05/' },
+        { title: '病棟サマリ', desc: '病棟ごとの主要な指標サマリ（直近週）', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index06/' },
+        { title: '入院分析_年度', desc: '入院患者数や在院日数を昨年度同期間と比較（直近週）', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index07/' },
+        { title: '全麻手術件数_年度', desc: '全身麻酔手術件数の目標達成状況を昨年同期間と比較、グラフ化（年度）', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index08/' },
+        { title: '全麻手術件数_診療科別', desc: '全身麻酔手術件数の目標達成状況を診療科別にグラフ化、分析、年度予測', updated: '2026/02/20 11:45', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index09/' },
     ];
 
     // Render tiles
