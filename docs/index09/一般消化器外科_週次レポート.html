@@ -1,0 +1,856 @@
+
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+        <title>🏥 一般消化器外科 週次実績レポート</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+        <style>
+            :root { 
+                --primary: #667eea; 
+                --success: #10B981; 
+                --danger: #EF4444;
+                --info: #3B82F6; 
+                --warning: #F59E0B; 
+                --text: #1F2937; 
+                --bg: #F3F4F6; 
+            }
+            * { box-sizing: border-box; }
+            body { 
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                background: var(--bg); 
+                color: var(--text); 
+                padding: 10px; 
+                margin: 0; 
+                line-height: 1.5;
+                touch-action: pan-y;
+            }
+            .header { 
+                text-align: center; 
+                max-width: 1200px; 
+                margin: 0 auto 20px; 
+                padding: 20px; 
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            }
+            .header h1 {
+                font-size: clamp(1.3rem, 4vw, 2rem);
+                margin: 10px 0;
+                color: var(--primary);
+            }
+            .header .dept-name {
+                font-size: clamp(1.5rem, 5vw, 2.5rem);
+                font-weight: bold;
+                color: var(--text);
+                margin: 10px 0;
+            }
+            .header .target-info {
+                font-size: clamp(1rem, 3vw, 1.3rem);
+                color: #6B7280;
+                margin: 10px 0;
+            }
+            .header .update-time {
+                font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+                color: #9CA3AF;
+                margin-top: 5px;
+            }
+            .portal-btn, .print-btn { 
+                display: inline-block;
+                padding: 10px 20px; 
+                background: white; 
+                text-decoration: none; 
+                border-radius: 8px; 
+                font-weight: bold; 
+                border: 2px solid var(--primary); 
+                font-size: clamp(0.8rem, 2vw, 1rem);
+                margin: 10px 5px;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            .portal-btn {
+                color: var(--primary);
+            }
+            .print-btn {
+                color: var(--info);
+                border-color: var(--info);
+            }
+            .portal-btn:hover { background: var(--primary); color: white; }
+            .print-btn:hover { background: var(--info); color: white; }
+            
+            .comparison-summary {
+                max-width: 1200px;
+                margin: 0 auto 20px;
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            }
+            .comparison-title {
+                font-size: clamp(1rem, 2.5vw, 1.3rem);
+                font-weight: bold;
+                margin-bottom: 15px;
+                text-align: center;
+                color: var(--primary);
+            }
+            .comparison-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            @media (min-width: 640px) {
+                .comparison-grid { grid-template-columns: repeat(2, 1fr); }
+            }
+            @media (min-width: 1024px) {
+                .comparison-grid { grid-template-columns: repeat(4, 1fr); }
+            }
+            .comparison-item {
+                background: #F9FAFB;
+                padding: 12px;
+                border-radius: 8px;
+                border-left: 4px solid var(--info);
+            }
+            .comparison-item.positive { border-left-color: var(--success); }
+            .comparison-item.negative { border-left-color: var(--danger); }
+            .comparison-item-label {
+                font-size: clamp(0.75rem, 1.8vw, 0.9rem);
+                color: #6B7280;
+                margin-bottom: 5px;
+            }
+            .comparison-item-value {
+                font-size: clamp(1rem, 2.5vw, 1.2rem);
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .diff-badge {
+                font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+                padding: 2px 8px;
+                border-radius: 12px;
+                background: #E5E7EB;
+                color: #4B5563;
+            }
+            .diff-badge.positive { background: #D1FAE5; color: #065F46; }
+            .diff-badge.negative { background: #FEE2E2; color: #991B1B; }
+            
+            .tab-navigation {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                max-width: 1200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .tab-button {
+                flex: 1;
+                padding: 12px;
+                background: white;
+                border: 2px solid #E5E7EB;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: clamp(0.85rem, 2vw, 1rem);
+                cursor: pointer;
+                transition: all 0.3s;
+                color: #6B7280;
+            }
+            .tab-button.active {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+            .tab-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            @media (min-width: 768px) {
+                .tab-navigation { display: none; }
+            }
+            
+            .container { 
+                display: flex; 
+                flex-direction: column;
+                gap: 20px; 
+                max-width: 1200px; 
+                margin: 0 auto; 
+            }
+            @media (min-width: 768px) {
+                .container { flex-direction: row; }
+            }
+            .column { 
+                flex: 1; 
+                min-width: 0; 
+                background: white; 
+                padding: 15px; 
+                border-radius: 12px; 
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                page-break-inside: avoid;
+            }
+            @media (min-width: 768px) {
+                .column { padding: 20px; }
+            }
+            @media (max-width: 767px) {
+                .column { display: none; }
+                .column.active { display: block; }
+            }
+            @media (min-width: 768px) {
+                .column.period-2 { order: 1; }
+                .column.period-1 { order: 2; }
+            }
+            
+            .col-title { 
+                background: #4A5568; 
+                color: white; 
+                padding: 12px; 
+                border-radius: 8px; 
+                text-align: center; 
+                margin-bottom: 15px; 
+                font-weight: bold; 
+                font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            }
+            
+            .data-info {
+                background: #F0F9FF;
+                padding: 10px;
+                border-radius: 6px;
+                margin-bottom: 15px;
+                font-size: clamp(0.75rem, 1.8vw, 0.85rem);
+                color: #1E40AF;
+                text-align: center;
+            }
+            
+            .grid { 
+                display: grid; 
+                grid-template-columns: 1fr;
+                gap: 10px; 
+                margin-bottom: 20px; 
+            }
+            @media (min-width: 480px) {
+                .grid { grid-template-columns: repeat(2, 1fr); }
+            }
+            .metric { 
+                background: #F9FAFB; 
+                padding: 12px; 
+                border-radius: 8px; 
+                text-align: center;
+                cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            .metric:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            .metric.alert {
+                border: 2px solid var(--danger);
+                background: #FEF2F2;
+            }
+            .metric-label { 
+                font-size: clamp(0.7rem, 1.8vw, 0.85rem); 
+                color: #6B7280; 
+                margin-bottom: 4px; 
+            }
+            .metric-value { 
+                font-size: clamp(1.1rem, 3vw, 1.6rem); 
+                font-weight: bold; 
+                color: var(--text); 
+            }
+            .metric-value.success { color: var(--success); }
+            .metric-value.danger { color: var(--danger); }
+            
+            .needed-alert {
+                background: #FEF3C7;
+                border: 1px solid #F59E0B;
+                color: #92400E;
+                padding: 8px 12px;
+                border-radius: 6px;
+                margin-bottom: 15px;
+                font-size: clamp(0.75rem, 1.8vw, 0.85rem);
+            }
+            .needed-ok {
+                background: #D1FAE5;
+                border: 1px solid #10B981;
+                color: #065F46;
+                padding: 8px 12px;
+                border-radius: 6px;
+                margin-bottom: 15px;
+                font-size: clamp(0.75rem, 1.8vw, 0.85rem);
+            }
+            
+            .chart-box { 
+                background: #F9FAFB; 
+                padding: 15px; 
+                border-radius: 8px; 
+                margin-bottom: 15px; 
+                height: 350px;
+                position: relative;
+                page-break-inside: avoid;
+            }
+            @media (min-width: 768px) {
+                .chart-box { height: 400px; }
+            }
+            .chart-box canvas {
+                position: absolute;
+                top: 40px;
+                left: 15px;
+                right: 15px;
+                bottom: 15px;
+                width: calc(100% - 30px) !important;
+                height: calc(100% - 55px) !important;
+                touch-action: pan-y pinch-zoom;
+            }
+            .chart-title { 
+                font-weight: bold; 
+                margin-bottom: 10px; 
+                font-size: clamp(0.85rem, 2vw, 1rem);
+                color: var(--text);
+                position: relative;
+                z-index: 1;
+            }
+            .chart-hint {
+                font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+                color: #9CA3AF;
+                margin-top: 5px;
+            }
+            
+            .weekly-table {
+                background: #F9FAFB;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+                overflow-x: auto;
+            }
+            .weekly-table table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: clamp(0.75rem, 1.8vw, 0.9rem);
+            }
+            .weekly-table th {
+                background: #4A5568;
+                color: white;
+                padding: 10px;
+                text-align: center;
+                font-weight: bold;
+            }
+            .weekly-table td {
+                padding: 8px;
+                text-align: center;
+                border-bottom: 1px solid #E5E7EB;
+            }
+            .weekly-table tr.achieved {
+                background: #D1FAE5;
+            }
+            .weekly-table tr.not-achieved {
+                background: #FEE2E2;
+            }
+            
+            @media print {
+                body { background: white; padding: 0; }
+                .header, .column, .comparison-summary { box-shadow: none; page-break-inside: avoid; }
+                .portal-btn, .print-btn, .tab-navigation { display: none; }
+                .container { flex-direction: row; }
+                .chart-box { height: 300px; }
+                @page { margin: 15mm; }
+            }
+            
+            .loading {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255,255,255,0.95);
+                padding: 20px 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                z-index: 1000;
+                display: none;
+            }
+            .loading.show { display: block; }
+            
+            /* モード切替バー */
+            .mode-switch-bar {
+                max-width: 1200px;
+                margin: 0 auto 20px;
+                display: flex;
+                gap: 10px;
+            }
+            .mode-btn {
+                flex: 1;
+                padding: 12px 16px;
+                background: white;
+                border: 2px solid #E5E7EB;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: clamp(0.82rem, 2vw, 1rem);
+                cursor: pointer;
+                color: #6B7280;
+                transition: all 0.25s;
+            }
+            .mode-btn:hover { border-color: var(--primary); color: var(--primary); }
+            .mode-btn.active {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="loading" id="loading">読み込み中...</div>
+        
+        <div class="header">
+            <h1>🏥 診療科別 週次実績レポート</h1>
+            <div class="dept-name">一般消化器外科</div>
+            <div class="target-info">📊 週次目標: 全身麻酔 14.1件</div>
+            <div class="update-time">📅 レポート作成日時: 2026年04月02日 07:20</div>
+            <div>
+                <a href="../index.html" class="portal-btn">📊 ポータルに戻る</a>
+                <button onclick="window.print()" class="print-btn">🖨️ 印刷/PDF保存</button>
+            </div>
+        </div>
+        
+        <div class="mode-switch-bar"><button id="btn-annual"  class="mode-btn active" onclick="switchMode('annual')">&#128197; 年度比較（今年度 vs 昨年度）</button><button id="btn-rolling" class="mode-btn " onclick="switchMode('rolling')">&#128260; 直近365日（直近 vs 前期）</button></div>
+        
+        <div class="comparison-summary">
+            <div class="comparison-title" id="summary-title">📊 期間比較サマリー（今年度 vs 昨年度）</div>
+            <div class="comparison-grid">
+                <div class="comparison-item positive">
+                    <div class="comparison-item-label">週平均件数の変化</div>
+                    <div class="comparison-item-value">
+                        +1.1 件
+                        <span class="diff-badge positive">+8.6%</span>
+                    </div>
+                </div>
+                <div class="comparison-item positive">
+                    <div class="comparison-item-label">目標達成率の変化</div>
+                    <div class="comparison-item-value">
+                        +7.9%
+                        <span class="diff-badge positive">+8.6%</span>
+                    </div>
+                </div>
+                <div class="comparison-item negative">
+                    <div class="comparison-item-label">年度予測値（直近8週ペース）</div>
+                    <div class="comparison-item-value">
+                        14.0件/週 &nbsp;
+                        <span class="diff-badge negative">99%</span>
+                    </div>
+                </div>
+                <div class="comparison-item">
+                    <div class="comparison-item-label">昨年度実績（週平均）</div>
+                    <div class="comparison-item-value">
+                        12.9件/週
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="switchTab('period2')">
+                📅 今年度（最新）
+            </button>
+            <button class="tab-button" onclick="switchTab('period1')">
+                📅 昨年度（比較）
+            </button>
+        </div>
+        
+        <div class="container">
+            <!-- 期間2 -->
+            <div class="column period-2 active">
+                <div class="col-title">📅 今年度: 今年度: 2026-04-01〜2026-04-01</div>
+                <div class="data-info">
+                    📋 分析対象: 1週間のデータ
+                </div>
+                <div class="grid">
+                    <div class="metric">
+                        <div class="metric-label">週平均件数（今年度）</div>
+                        <div class="metric-value">14.0 件</div>
+                    </div>
+                    <div class="metric alert">
+                        <div class="metric-label">目標達成率</div>
+                        <div class="metric-value danger">
+                            99.3%
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">昨年度実績（週平均）</div>
+                        <div class="metric-value">12.9 件</div>
+                    </div>
+                    <div class="metric alert">
+                        <div class="metric-label">年度予測値（直近8週ペース）</div>
+                        <div class="metric-value danger">
+                            14.0 件/週
+                            <span style="font-size:0.65em;display:block;">(99%)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="needed-alert">⚠️ 年度末目標達成には週あたり <strong>0.1 件</strong> の追加が必要です</div>
+                <div class="chart-box">
+                    <div class="chart-title">📈 週次推移グラフ
+                        <div class="chart-hint">💡 緑=達成週 / 緑破線=目標 / 赤=累積達成率 / ピンチで拡大</div>
+                    </div>
+                    <canvas id="chart2"></canvas>
+                </div>
+                <div class="weekly-table">
+                    <div class="chart-title">📋 週別詳細</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>週</th>
+                                <th>開始日</th>
+                                <th>件数</th>
+                                <th>達成率</th>
+                                <th>状態</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table2">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 期間1 -->
+            <div class="column period-1">
+                <div class="col-title">📅 昨年度: 昨年度: 2025-04-01〜2026-03-31</div>
+                <div class="data-info">
+                    📋 分析対象: 53週間のデータ
+                </div>
+                <div class="grid">
+                    <div class="metric">
+                        <div class="metric-label">週平均件数（昨年度）</div>
+                        <div class="metric-value">12.9 件</div>
+                    </div>
+                    <div class="metric alert">
+                        <div class="metric-label">目標達成率</div>
+                        <div class="metric-value danger">
+                            91.4%
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">達成週数</div>
+                        <div class="metric-value">12 / 53 週</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">累計件数</div>
+                        <div class="metric-value">672 件</div>
+                    </div>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">📈 週次推移グラフ
+                        <div class="chart-hint">💡 緑=達成週 / 緑破線=目標 / 赤=累積達成率 / ピンチで拡大</div>
+                    </div>
+                    <canvas id="chart1"></canvas>
+                </div>
+                <div class="weekly-table">
+                    <div class="chart-title">📋 週別詳細</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>週</th>
+                                <th>開始日</th>
+                                <th>件数</th>
+                                <th>達成率</th>
+                                <th>状態</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table1">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.getElementById('loading').classList.add('show');
+            
+            // ── 4パターンのデータを埋め込む ──
+            const DUAL_MODE = true;
+            const modeData = {
+                annual: {
+                    p2_chart: [{"\u9031\u30e9\u30d9\u30eb":"03\/31","\u9031\u4ef6\u6570":2,"MA8":2.0,"\u7d2f\u7a4d\u9054\u6210\u7387":14.2,"\u9054\u6210":false,"\u9054\u6210\u7387":14.2}], p1_chart: [{"\u9031\u30e9\u30d9\u30eb":"04\/01","\u9031\u4ef6\u6570":13,"MA8":13.0,"\u7d2f\u7a4d\u9054\u6210\u7387":92.2,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"04\/08","\u9031\u4ef6\u6570":8,"MA8":10.5,"\u7d2f\u7a4d\u9054\u6210\u7387":74.5,"\u9054\u6210":false,"\u9054\u6210\u7387":56.7},{"\u9031\u30e9\u30d9\u30eb":"04\/15","\u9031\u4ef6\u6570":12,"MA8":11.0,"\u7d2f\u7a4d\u9054\u6210\u7387":78.0,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"04\/22","\u9031\u4ef6\u6570":12,"MA8":11.25,"\u7d2f\u7a4d\u9054\u6210\u7387":79.8,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"04\/29","\u9031\u4ef6\u6570":11,"MA8":11.2,"\u7d2f\u7a4d\u9054\u6210\u7387":79.4,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"05\/06","\u9031\u4ef6\u6570":13,"MA8":11.5,"\u7d2f\u7a4d\u9054\u6210\u7387":81.6,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"05\/13","\u9031\u4ef6\u6570":15,"MA8":12.0,"\u7d2f\u7a4d\u9054\u6210\u7387":85.1,"\u9054\u6210":true,"\u9054\u6210\u7387":106.4},{"\u9031\u30e9\u30d9\u30eb":"05\/20","\u9031\u4ef6\u6570":19,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":91.3,"\u9054\u6210":true,"\u9054\u6210\u7387":134.8},{"\u9031\u30e9\u30d9\u30eb":"05\/27","\u9031\u4ef6\u6570":10,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":89.0,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"06\/03","\u9031\u4ef6\u6570":14,"MA8":13.25,"\u7d2f\u7a4d\u9054\u6210\u7387":90.1,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"06\/10","\u9031\u4ef6\u6570":11,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":89.0,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"06\/17","\u9031\u4ef6\u6570":13,"MA8":13.25,"\u7d2f\u7a4d\u9054\u6210\u7387":89.2,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"06\/24","\u9031\u4ef6\u6570":10,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":87.8,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"07\/01","\u9031\u4ef6\u6570":18,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":90.7,"\u9054\u6210":true,"\u9054\u6210\u7387":127.7},{"\u9031\u30e9\u30d9\u30eb":"07\/08","\u9031\u4ef6\u6570":14,"MA8":13.625,"\u7d2f\u7a4d\u9054\u6210\u7387":91.3,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"07\/15","\u9031\u4ef6\u6570":8,"MA8":12.25,"\u7d2f\u7a4d\u9054\u6210\u7387":89.1,"\u9054\u6210":false,"\u9054\u6210\u7387":56.7},{"\u9031\u30e9\u30d9\u30eb":"07\/22","\u9031\u4ef6\u6570":13,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":89.3,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"07\/29","\u9031\u4ef6\u6570":12,"MA8":12.375,"\u7d2f\u7a4d\u9054\u6210\u7387":89.0,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"08\/05","\u9031\u4ef6\u6570":12,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":88.8,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"08\/12","\u9031\u4ef6\u6570":16,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":90.1,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"08\/19","\u9031\u4ef6\u6570":16,"MA8":13.625,"\u7d2f\u7a4d\u9054\u6210\u7387":91.2,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"08\/26","\u9031\u4ef6\u6570":10,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":90.3,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"09\/02","\u9031\u4ef6\u6570":13,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":90.3,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"09\/09","\u9031\u4ef6\u6570":14,"MA8":13.25,"\u7d2f\u7a4d\u9054\u6210\u7387":90.7,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"09\/16","\u9031\u4ef6\u6570":11,"MA8":13.0,"\u7d2f\u7a4d\u9054\u6210\u7387":90.2,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"09\/23","\u9031\u4ef6\u6570":8,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":88.9,"\u9054\u6210":false,"\u9054\u6210\u7387":56.7},{"\u9031\u30e9\u30d9\u30eb":"09\/30","\u9031\u4ef6\u6570":13,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":89.0,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"10\/07","\u9031\u4ef6\u6570":10,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.4,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"10\/14","\u9031\u4ef6\u6570":16,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":89.3,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"10\/21","\u9031\u4ef6\u6570":10,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.7,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"10\/28","\u9031\u4ef6\u6570":11,"MA8":11.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.3,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"11\/04","\u9031\u4ef6\u6570":14,"MA8":11.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.7,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"11\/11","\u9031\u4ef6\u6570":13,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.8,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"11\/18","\u9031\u4ef6\u6570":10,"MA8":12.125,"\u7d2f\u7a4d\u9054\u6210\u7387":88.2,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"11\/25","\u9031\u4ef6\u6570":13,"MA8":12.125,"\u7d2f\u7a4d\u9054\u6210\u7387":88.3,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"12\/02","\u9031\u4ef6\u6570":14,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.7,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"12\/09","\u9031\u4ef6\u6570":10,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.2,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"12\/16","\u9031\u4ef6\u6570":14,"MA8":12.375,"\u7d2f\u7a4d\u9054\u6210\u7387":88.5,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"12\/23","\u9031\u4ef6\u6570":14,"MA8":12.75,"\u7d2f\u7a4d\u9054\u6210\u7387":88.7,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"12\/30","\u9031\u4ef6\u6570":3,"MA8":11.375,"\u7d2f\u7a4d\u9054\u6210\u7387":87.1,"\u9054\u6210":false,"\u9054\u6210\u7387":21.3},{"\u9031\u30e9\u30d9\u30eb":"01\/06","\u9031\u4ef6\u6570":13,"MA8":11.375,"\u7d2f\u7a4d\u9054\u6210\u7387":87.2,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"01\/13","\u9031\u4ef6\u6570":17,"MA8":12.25,"\u7d2f\u7a4d\u9054\u6210\u7387":88.0,"\u9054\u6210":true,"\u9054\u6210\u7387":120.6},{"\u9031\u30e9\u30d9\u30eb":"01\/20","\u9031\u4ef6\u6570":16,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.6,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"01\/27","\u9031\u4ef6\u6570":16,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":89.1,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"02\/03","\u9031\u4ef6\u6570":17,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":89.8,"\u9054\u6210":true,"\u9054\u6210\u7387":120.6},{"\u9031\u30e9\u30d9\u30eb":"02\/10","\u9031\u4ef6\u6570":14,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":90.0,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"02\/17","\u9031\u4ef6\u6570":14,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":90.2,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"02\/24","\u9031\u4ef6\u6570":12,"MA8":14.875,"\u7d2f\u7a4d\u9054\u6210\u7387":90.1,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"03\/03","\u9031\u4ef6\u6570":14,"MA8":15.0,"\u7d2f\u7a4d\u9054\u6210\u7387":90.3,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"03\/10","\u9031\u4ef6\u6570":19,"MA8":15.25,"\u7d2f\u7a4d\u9054\u6210\u7387":91.2,"\u9054\u6210":true,"\u9054\u6210\u7387":134.8},{"\u9031\u30e9\u30d9\u30eb":"03\/17","\u9031\u4ef6\u6570":12,"MA8":14.75,"\u7d2f\u7a4d\u9054\u6210\u7387":91.1,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"03\/24","\u9031\u4ef6\u6570":15,"MA8":14.625,"\u7d2f\u7a4d\u9054\u6210\u7387":91.4,"\u9054\u6210":true,"\u9054\u6210\u7387":106.4},{"\u9031\u30e9\u30d9\u30eb":"03\/31","\u9031\u4ef6\u6570":2,"MA8":12.75,"\u7d2f\u7a4d\u9054\u6210\u7387":89.9,"\u9054\u6210":false,"\u9054\u6210\u7387":14.2}],
+                    p2: {"title": "今年度: 2026-04-01〜2026-04-01", "avg_weekly": 14.0, "achieve_rate": 99.3, "achieved_weeks": 0, "total_weeks": 1, "total_cases": 2, "last8_avg": 2.0, "last8_achieve_rate": 14.2, "needed_per_week": 12.1, "last_year_avg": 12.89}, p1: {"title": "昨年度: 2025-04-01〜2026-03-31", "avg_weekly": 12.89, "achieve_rate": 91.4, "achieved_weeks": 12, "total_weeks": 53, "total_cases": 672, "last8_avg": 12.75, "last8_achieve_rate": 90.4, "needed_per_week": 1.35, "last_year_avg": null},
+                    p2_name: '今年度', p1_name: '昨年度',
+                    forecast_label: '年度予測値（直近8週ペース）',
+                    target_period:  '年度末',
+                    summary_title:  '📊 期間比較サマリー（今年度 vs 昨年度）',
+                },
+                rolling: {
+                    p2_chart: [{"\u9031\u30e9\u30d9\u30eb":"04\/01","\u9031\u4ef6\u6570":11,"MA8":11.0,"\u7d2f\u7a4d\u9054\u6210\u7387":78.0,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"04\/08","\u9031\u4ef6\u6570":8,"MA8":9.5,"\u7d2f\u7a4d\u9054\u6210\u7387":67.4,"\u9054\u6210":false,"\u9054\u6210\u7387":56.7},{"\u9031\u30e9\u30d9\u30eb":"04\/15","\u9031\u4ef6\u6570":12,"MA8":10.3333333333,"\u7d2f\u7a4d\u9054\u6210\u7387":73.3,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"04\/22","\u9031\u4ef6\u6570":12,"MA8":10.75,"\u7d2f\u7a4d\u9054\u6210\u7387":76.2,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"04\/29","\u9031\u4ef6\u6570":11,"MA8":10.8,"\u7d2f\u7a4d\u9054\u6210\u7387":76.6,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"05\/06","\u9031\u4ef6\u6570":13,"MA8":11.1666666667,"\u7d2f\u7a4d\u9054\u6210\u7387":79.2,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"05\/13","\u9031\u4ef6\u6570":15,"MA8":11.7142857143,"\u7d2f\u7a4d\u9054\u6210\u7387":83.1,"\u9054\u6210":true,"\u9054\u6210\u7387":106.4},{"\u9031\u30e9\u30d9\u30eb":"05\/20","\u9031\u4ef6\u6570":19,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":89.5,"\u9054\u6210":true,"\u9054\u6210\u7387":134.8},{"\u9031\u30e9\u30d9\u30eb":"05\/27","\u9031\u4ef6\u6570":10,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":87.5,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"06\/03","\u9031\u4ef6\u6570":14,"MA8":13.25,"\u7d2f\u7a4d\u9054\u6210\u7387":88.7,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"06\/10","\u9031\u4ef6\u6570":11,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":87.7,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"06\/17","\u9031\u4ef6\u6570":13,"MA8":13.25,"\u7d2f\u7a4d\u9054\u6210\u7387":88.1,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"06\/24","\u9031\u4ef6\u6570":10,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":86.7,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"07\/01","\u9031\u4ef6\u6570":18,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":89.7,"\u9054\u6210":true,"\u9054\u6210\u7387":127.7},{"\u9031\u30e9\u30d9\u30eb":"07\/08","\u9031\u4ef6\u6570":14,"MA8":13.625,"\u7d2f\u7a4d\u9054\u6210\u7387":90.3,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"07\/15","\u9031\u4ef6\u6570":8,"MA8":12.25,"\u7d2f\u7a4d\u9054\u6210\u7387":88.2,"\u9054\u6210":false,"\u9054\u6210\u7387":56.7},{"\u9031\u30e9\u30d9\u30eb":"07\/22","\u9031\u4ef6\u6570":13,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.4,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"07\/29","\u9031\u4ef6\u6570":12,"MA8":12.375,"\u7d2f\u7a4d\u9054\u6210\u7387":88.3,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"08\/05","\u9031\u4ef6\u6570":12,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":88.1,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"08\/12","\u9031\u4ef6\u6570":16,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":89.4,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"08\/19","\u9031\u4ef6\u6570":16,"MA8":13.625,"\u7d2f\u7a4d\u9054\u6210\u7387":90.5,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"08\/26","\u9031\u4ef6\u6570":10,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":89.6,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"09\/02","\u9031\u4ef6\u6570":13,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":89.7,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"09\/09","\u9031\u4ef6\u6570":14,"MA8":13.25,"\u7d2f\u7a4d\u9054\u6210\u7387":90.1,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"09\/16","\u9031\u4ef6\u6570":11,"MA8":13.0,"\u7d2f\u7a4d\u9054\u6210\u7387":89.6,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"09\/23","\u9031\u4ef6\u6570":8,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":88.4,"\u9054\u6210":false,"\u9054\u6210\u7387":56.7},{"\u9031\u30e9\u30d9\u30eb":"09\/30","\u9031\u4ef6\u6570":13,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.5,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"10\/07","\u9031\u4ef6\u6570":10,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":87.9,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"10\/14","\u9031\u4ef6\u6570":16,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.8,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"10\/21","\u9031\u4ef6\u6570":10,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.2,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"10\/28","\u9031\u4ef6\u6570":11,"MA8":11.625,"\u7d2f\u7a4d\u9054\u6210\u7387":87.9,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"11\/04","\u9031\u4ef6\u6570":14,"MA8":11.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.2,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"11\/11","\u9031\u4ef6\u6570":13,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.3,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"11\/18","\u9031\u4ef6\u6570":10,"MA8":12.125,"\u7d2f\u7a4d\u9054\u6210\u7387":87.8,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"11\/25","\u9031\u4ef6\u6570":13,"MA8":12.125,"\u7d2f\u7a4d\u9054\u6210\u7387":87.9,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"12\/02","\u9031\u4ef6\u6570":14,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.3,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"12\/09","\u9031\u4ef6\u6570":10,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":87.8,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"12\/16","\u9031\u4ef6\u6570":14,"MA8":12.375,"\u7d2f\u7a4d\u9054\u6210\u7387":88.1,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"12\/23","\u9031\u4ef6\u6570":14,"MA8":12.75,"\u7d2f\u7a4d\u9054\u6210\u7387":88.4,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"12\/30","\u9031\u4ef6\u6570":3,"MA8":11.375,"\u7d2f\u7a4d\u9054\u6210\u7387":86.7,"\u9054\u6210":false,"\u9054\u6210\u7387":21.3},{"\u9031\u30e9\u30d9\u30eb":"01\/06","\u9031\u4ef6\u6570":13,"MA8":11.375,"\u7d2f\u7a4d\u9054\u6210\u7387":86.8,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"01\/13","\u9031\u4ef6\u6570":17,"MA8":12.25,"\u7d2f\u7a4d\u9054\u6210\u7387":87.6,"\u9054\u6210":true,"\u9054\u6210\u7387":120.6},{"\u9031\u30e9\u30d9\u30eb":"01\/20","\u9031\u4ef6\u6570":16,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.2,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"01\/27","\u9031\u4ef6\u6570":16,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.8,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"02\/03","\u9031\u4ef6\u6570":17,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":89.5,"\u9054\u6210":true,"\u9054\u6210\u7387":120.6},{"\u9031\u30e9\u30d9\u30eb":"02\/10","\u9031\u4ef6\u6570":14,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":89.7,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"02\/17","\u9031\u4ef6\u6570":14,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":89.9,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"02\/24","\u9031\u4ef6\u6570":12,"MA8":14.875,"\u7d2f\u7a4d\u9054\u6210\u7387":89.8,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"03\/03","\u9031\u4ef6\u6570":14,"MA8":15.0,"\u7d2f\u7a4d\u9054\u6210\u7387":90.0,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"03\/10","\u9031\u4ef6\u6570":19,"MA8":15.25,"\u7d2f\u7a4d\u9054\u6210\u7387":90.9,"\u9054\u6210":true,"\u9054\u6210\u7387":134.8},{"\u9031\u30e9\u30d9\u30eb":"03\/17","\u9031\u4ef6\u6570":12,"MA8":14.75,"\u7d2f\u7a4d\u9054\u6210\u7387":90.8,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"03\/24","\u9031\u4ef6\u6570":15,"MA8":14.625,"\u7d2f\u7a4d\u9054\u6210\u7387":91.1,"\u9054\u6210":true,"\u9054\u6210\u7387":106.4},{"\u9031\u30e9\u30d9\u30eb":"03\/31","\u9031\u4ef6\u6570":4,"MA8":13.0,"\u7d2f\u7a4d\u9054\u6210\u7387":89.9,"\u9054\u6210":false,"\u9054\u6210\u7387":28.4}], p1_chart: [{"\u9031\u30e9\u30d9\u30eb":"04\/02","\u9031\u4ef6\u6570":13,"MA8":13.0,"\u7d2f\u7a4d\u9054\u6210\u7387":92.2,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"04\/09","\u9031\u4ef6\u6570":14,"MA8":13.5,"\u7d2f\u7a4d\u9054\u6210\u7387":95.7,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"04\/16","\u9031\u4ef6\u6570":9,"MA8":12.0,"\u7d2f\u7a4d\u9054\u6210\u7387":85.1,"\u9054\u6210":false,"\u9054\u6210\u7387":63.8},{"\u9031\u30e9\u30d9\u30eb":"04\/23","\u9031\u4ef6\u6570":13,"MA8":12.25,"\u7d2f\u7a4d\u9054\u6210\u7387":86.9,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"04\/30","\u9031\u4ef6\u6570":10,"MA8":11.8,"\u7d2f\u7a4d\u9054\u6210\u7387":83.7,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"05\/07","\u9031\u4ef6\u6570":13,"MA8":12.0,"\u7d2f\u7a4d\u9054\u6210\u7387":85.1,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"05\/14","\u9031\u4ef6\u6570":10,"MA8":11.7142857143,"\u7d2f\u7a4d\u9054\u6210\u7387":83.1,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"05\/21","\u9031\u4ef6\u6570":9,"MA8":11.375,"\u7d2f\u7a4d\u9054\u6210\u7387":80.7,"\u9054\u6210":false,"\u9054\u6210\u7387":63.8},{"\u9031\u30e9\u30d9\u30eb":"05\/28","\u9031\u4ef6\u6570":9,"MA8":10.875,"\u7d2f\u7a4d\u9054\u6210\u7387":78.8,"\u9054\u6210":false,"\u9054\u6210\u7387":63.8},{"\u9031\u30e9\u30d9\u30eb":"06\/04","\u9031\u4ef6\u6570":8,"MA8":10.125,"\u7d2f\u7a4d\u9054\u6210\u7387":76.6,"\u9054\u6210":false,"\u9054\u6210\u7387":56.7},{"\u9031\u30e9\u30d9\u30eb":"06\/11","\u9031\u4ef6\u6570":18,"MA8":11.25,"\u7d2f\u7a4d\u9054\u6210\u7387":81.2,"\u9054\u6210":true,"\u9054\u6210\u7387":127.7},{"\u9031\u30e9\u30d9\u30eb":"06\/18","\u9031\u4ef6\u6570":15,"MA8":11.5,"\u7d2f\u7a4d\u9054\u6210\u7387":83.3,"\u9054\u6210":true,"\u9054\u6210\u7387":106.4},{"\u9031\u30e9\u30d9\u30eb":"06\/25","\u9031\u4ef6\u6570":15,"MA8":12.125,"\u7d2f\u7a4d\u9054\u6210\u7387":85.1,"\u9054\u6210":true,"\u9054\u6210\u7387":106.4},{"\u9031\u30e9\u30d9\u30eb":"07\/02","\u9031\u4ef6\u6570":19,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":88.7,"\u9054\u6210":true,"\u9054\u6210\u7387":134.8},{"\u9031\u30e9\u30d9\u30eb":"07\/09","\u9031\u4ef6\u6570":11,"MA8":13.0,"\u7d2f\u7a4d\u9054\u6210\u7387":87.9,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"07\/16","\u9031\u4ef6\u6570":14,"MA8":13.625,"\u7d2f\u7a4d\u9054\u6210\u7387":88.7,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"07\/23","\u9031\u4ef6\u6570":19,"MA8":14.875,"\u7d2f\u7a4d\u9054\u6210\u7387":91.4,"\u9054\u6210":true,"\u9054\u6210\u7387":134.8},{"\u9031\u30e9\u30d9\u30eb":"07\/30","\u9031\u4ef6\u6570":14,"MA8":15.625,"\u7d2f\u7a4d\u9054\u6210\u7387":91.8,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"08\/06","\u9031\u4ef6\u6570":13,"MA8":15.0,"\u7d2f\u7a4d\u9054\u6210\u7387":91.8,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"08\/13","\u9031\u4ef6\u6570":14,"MA8":14.875,"\u7d2f\u7a4d\u9054\u6210\u7387":92.2,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"08\/20","\u9031\u4ef6\u6570":15,"MA8":14.875,"\u7d2f\u7a4d\u9054\u6210\u7387":92.9,"\u9054\u6210":true,"\u9054\u6210\u7387":106.4},{"\u9031\u30e9\u30d9\u30eb":"08\/27","\u9031\u4ef6\u6570":13,"MA8":14.125,"\u7d2f\u7a4d\u9054\u6210\u7387":92.8,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"09\/03","\u9031\u4ef6\u6570":16,"MA8":14.75,"\u7d2f\u7a4d\u9054\u6210\u7387":93.7,"\u9054\u6210":true,"\u9054\u6210\u7387":113.5},{"\u9031\u30e9\u30d9\u30eb":"09\/10","\u9031\u4ef6\u6570":12,"MA8":14.5,"\u7d2f\u7a4d\u9054\u6210\u7387":93.4,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"09\/17","\u9031\u4ef6\u6570":11,"MA8":13.5,"\u7d2f\u7a4d\u9054\u6210\u7387":92.8,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"09\/24","\u9031\u4ef6\u6570":11,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":92.2,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"10\/01","\u9031\u4ef6\u6570":13,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":92.2,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"10\/08","\u9031\u4ef6\u6570":12,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":91.9,"\u9054\u6210":false,"\u9054\u6210\u7387":85.1},{"\u9031\u30e9\u30d9\u30eb":"10\/15","\u9031\u4ef6\u6570":17,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":92.9,"\u9054\u6210":true,"\u9054\u6210\u7387":120.6},{"\u9031\u30e9\u30d9\u30eb":"10\/22","\u9031\u4ef6\u6570":9,"MA8":12.625,"\u7d2f\u7a4d\u9054\u6210\u7387":92.0,"\u9054\u6210":false,"\u9054\u6210\u7387":63.8},{"\u9031\u30e9\u30d9\u30eb":"10\/29","\u9031\u4ef6\u6570":18,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":93.1,"\u9054\u6210":true,"\u9054\u6210\u7387":127.7},{"\u9031\u30e9\u30d9\u30eb":"11\/05","\u9031\u4ef6\u6570":14,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":93.3,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"11\/12","\u9031\u4ef6\u6570":14,"MA8":13.5,"\u7d2f\u7a4d\u9054\u6210\u7387":93.5,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"11\/19","\u9031\u4ef6\u6570":13,"MA8":13.75,"\u7d2f\u7a4d\u9054\u6210\u7387":93.5,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"11\/26","\u9031\u4ef6\u6570":7,"MA8":13.0,"\u7d2f\u7a4d\u9054\u6210\u7387":92.2,"\u9054\u6210":false,"\u9054\u6210\u7387":49.6},{"\u9031\u30e9\u30d9\u30eb":"12\/03","\u9031\u4ef6\u6570":11,"MA8":12.875,"\u7d2f\u7a4d\u9054\u6210\u7387":91.8,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"12\/10","\u9031\u4ef6\u6570":14,"MA8":12.5,"\u7d2f\u7a4d\u9054\u6210\u7387":92.0,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"12\/17","\u9031\u4ef6\u6570":14,"MA8":13.125,"\u7d2f\u7a4d\u9054\u6210\u7387":92.2,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"12\/24","\u9031\u4ef6\u6570":9,"MA8":12.0,"\u7d2f\u7a4d\u9054\u6210\u7387":91.5,"\u9054\u6210":false,"\u9054\u6210\u7387":63.8},{"\u9031\u30e9\u30d9\u30eb":"12\/31","\u9031\u4ef6\u6570":5,"MA8":10.875,"\u7d2f\u7a4d\u9054\u6210\u7387":90.1,"\u9054\u6210":false,"\u9054\u6210\u7387":35.5},{"\u9031\u30e9\u30d9\u30eb":"01\/07","\u9031\u4ef6\u6570":7,"MA8":10.0,"\u7d2f\u7a4d\u9054\u6210\u7387":89.1,"\u9054\u6210":false,"\u9054\u6210\u7387":49.6},{"\u9031\u30e9\u30d9\u30eb":"01\/14","\u9031\u4ef6\u6570":15,"MA8":10.25,"\u7d2f\u7a4d\u9054\u6210\u7387":89.5,"\u9054\u6210":true,"\u9054\u6210\u7387":106.4},{"\u9031\u30e9\u30d9\u30eb":"01\/21","\u9031\u4ef6\u6570":17,"MA8":11.5,"\u7d2f\u7a4d\u9054\u6210\u7387":90.2,"\u9054\u6210":true,"\u9054\u6210\u7387":120.6},{"\u9031\u30e9\u30d9\u30eb":"01\/28","\u9031\u4ef6\u6570":14,"MA8":11.875,"\u7d2f\u7a4d\u9054\u6210\u7387":90.4,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"02\/04","\u9031\u4ef6\u6570":18,"MA8":12.375,"\u7d2f\u7a4d\u9054\u6210\u7387":91.3,"\u9054\u6210":true,"\u9054\u6210\u7387":127.7},{"\u9031\u30e9\u30d9\u30eb":"02\/11","\u9031\u4ef6\u6570":14,"MA8":12.375,"\u7d2f\u7a4d\u9054\u6210\u7387":91.4,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"02\/18","\u9031\u4ef6\u6570":9,"MA8":12.375,"\u7d2f\u7a4d\u9054\u6210\u7387":90.8,"\u9054\u6210":false,"\u9054\u6210\u7387":63.8},{"\u9031\u30e9\u30d9\u30eb":"02\/25","\u9031\u4ef6\u6570":17,"MA8":13.875,"\u7d2f\u7a4d\u9054\u6210\u7387":91.5,"\u9054\u6210":true,"\u9054\u6210\u7387":120.6},{"\u9031\u30e9\u30d9\u30eb":"03\/04","\u9031\u4ef6\u6570":10,"MA8":14.25,"\u7d2f\u7a4d\u9054\u6210\u7387":91.0,"\u9054\u6210":false,"\u9054\u6210\u7387":70.9},{"\u9031\u30e9\u30d9\u30eb":"03\/11","\u9031\u4ef6\u6570":13,"MA8":14.0,"\u7d2f\u7a4d\u9054\u6210\u7387":91.1,"\u9054\u6210":false,"\u9054\u6210\u7387":92.2},{"\u9031\u30e9\u30d9\u30eb":"03\/18","\u9031\u4ef6\u6570":11,"MA8":13.25,"\u7d2f\u7a4d\u9054\u6210\u7387":90.8,"\u9054\u6210":false,"\u9054\u6210\u7387":78.0},{"\u9031\u30e9\u30d9\u30eb":"03\/25","\u9031\u4ef6\u6570":14,"MA8":13.25,"\u7d2f\u7a4d\u9054\u6210\u7387":91.0,"\u9054\u6210":false,"\u9054\u6210\u7387":99.3},{"\u9031\u30e9\u30d9\u30eb":"04\/01","\u9031\u4ef6\u6570":2,"MA8":11.25,"\u7d2f\u7a4d\u9054\u6210\u7387":89.5,"\u9054\u6210":false,"\u9054\u6210\u7387":14.2}],
+                    p2: {"title": "直近365日: 2025-04-02〜2026-04-01", "avg_weekly": 12.89, "achieve_rate": 91.4, "achieved_weeks": 12, "total_weeks": 53, "total_cases": 672, "last8_avg": 13.0, "last8_achieve_rate": 92.2, "needed_per_week": 1.1, "last_year_avg": 12.83}, p1: {"title": "前期365日: 2024-04-02〜2025-04-01", "avg_weekly": 12.83, "achieve_rate": 91.0, "achieved_weeks": 13, "total_weeks": 53, "total_cases": 669, "last8_avg": 11.25, "last8_achieve_rate": 79.8, "needed_per_week": 2.85, "last_year_avg": null},
+                    p2_name: '直近365日', p1_name: '前期365日',
+                    forecast_label: '365日予測（直近8週ペース）',
+                    target_period:  '365日累計',
+                    summary_title:  '📊 期間比較サマリー（直近365日 vs 前期365日）',
+                },
+            };
+            let currentMode = 'annual';
+            let chart1Inst = null, chart2Inst = null;
+
+            function switchMode(mode) {
+                if (!DUAL_MODE) return;
+                currentMode = mode;
+                const d = modeData[mode];
+                const isRolling = (mode === 'rolling');
+
+                // ボタン状態
+                document.getElementById('btn-annual') .classList.toggle('active', !isRolling);
+                document.getElementById('btn-rolling').classList.toggle('active',  isRolling);
+
+                // サマリータイトル
+                const st = document.getElementById('summary-title');
+                if (st) st.textContent = d.summary_title;
+
+                // カラムタイトル
+                const t2 = document.querySelector('.period-2 .col-title');
+                const t1 = document.querySelector('.period-1 .col-title');
+                if (t2) t2.textContent = '📅 ' + d.p2_name + ': ' + d.p2.title;
+                if (t1) t1.textContent = '📅 ' + d.p1_name + ': ' + d.p1.title;
+
+                // データ情報
+                const di2 = document.querySelector('.period-2 .data-info');
+                const di1 = document.querySelector('.period-1 .data-info');
+                if (di2) di2.textContent = '📋 分析対象: ' + d.p2.total_weeks + '週間のデータ';
+                if (di1) di1.textContent = '📋 分析対象: ' + d.p1.total_weeks + '週間のデータ';
+
+                // モバイルタブボタン
+                const tb2 = document.querySelector('.tab-button:first-child');
+                const tb1 = document.querySelector('.tab-button:last-child');
+                if (tb2) tb2.textContent = '📅 ' + d.p2_name + '（最新）';
+                if (tb1) tb1.textContent = '📅 ' + d.p1_name + '（比較）';
+
+                // メトリクス更新（period-2）
+                updateMetrics('.period-2', d.p2, d.p2_name, d.forecast_label, d.target_period, d.p1.avg_weekly, true);
+                // メトリクス更新（period-1）
+                updateMetrics('.period-1', d.p1, d.p1_name, d.forecast_label, d.target_period, null, false);
+
+                // サマリーカード更新
+                updateSummary(d.p2, d.p1, d.forecast_label);
+
+                // グラフ再描画
+                if (chart1Inst) { chart1Inst.destroy(); chart1Inst = null; }
+                if (chart2Inst) { chart2Inst.destroy(); chart2Inst = null; }
+                chart1Inst = drawChart('chart1', d.p1_chart, 'table1');
+                chart2Inst = drawChart('chart2', d.p2_chart, 'table2');
+            }
+
+            function updateMetrics(colSel, m, periodName, forecastLabel, targetPeriod, prevAvg, isPeriod2) {
+                const col = document.querySelector(colSel);
+                if (!col) return;
+                const labels = col.querySelectorAll('.metric-label');
+                const values = col.querySelectorAll('.metric-value');
+                if (!labels.length) return;
+
+                if (isPeriod2) {
+                    // period-2: 週平均/達成率/前期実績/予測
+                    if (labels[0]) labels[0].textContent = '週平均件数（' + periodName + '）';
+                    if (values[0]) values[0].textContent = m.avg_weekly.toFixed(1) + ' 件';
+                    if (values[1]) { 
+                        values[1].textContent = m.achieve_rate.toFixed(1) + '%';
+                        values[1].className = 'metric-value ' + (m.achieve_rate >= 100 ? 'success' : 'danger');
+                    }
+                    if (labels[2]) labels[2].textContent = (prevAvg !== null ? modeData[currentMode].p1_name : '比較期間') + '実績（週平均）';
+                    if (values[2]) values[2].textContent = (prevAvg !== null ? prevAvg.toFixed(1) + ' 件' : '－ 件');
+                    if (labels[3]) labels[3].textContent = forecastLabel;
+                    if (values[3]) {
+                        values[3].innerHTML = m.last8_avg.toFixed(1) + ' 件/週<span style="font-size:0.65em;display:block;">(' + m.last8_achieve_rate.toFixed(0) + '%)</span>';
+                        values[3].className = 'metric-value ' + (m.last8_achieve_rate >= 100 ? 'success' : 'danger');
+                    }
+                    // needed アラート
+                    const na = col.querySelector('.needed-alert, .needed-ok');
+                    if (na) {
+                        if (m.needed_per_week > 0) {
+                            na.className = 'needed-alert';
+                            na.innerHTML = '⚠️ ' + targetPeriod + '目標達成には週あたり <strong>' + m.needed_per_week.toFixed(1) + ' 件</strong> の追加が必要です';
+                        } else {
+                            na.className = 'needed-ok';
+                            na.textContent = '✅ 直近8週ペースで目標達成中';
+                        }
+                    }
+                } else {
+                    // period-1: 週平均/達成率/達成週数/累計件数
+                    if (labels[0]) labels[0].textContent = '週平均件数（' + periodName + '）';
+                    if (values[0]) values[0].textContent = m.avg_weekly.toFixed(1) + ' 件';
+                    if (values[1]) {
+                        values[1].textContent = m.achieve_rate.toFixed(1) + '%';
+                        values[1].className = 'metric-value ' + (m.achieve_rate >= 100 ? 'success' : 'danger');
+                    }
+                    if (values[2]) values[2].textContent = m.achieved_weeks + ' / ' + m.total_weeks + ' 週';
+                    if (values[3]) values[3].textContent = m.total_cases + ' 件';
+                }
+            }
+
+            function updateSummary(p2, p1, forecastLabel) {
+                function diffCalc(a, b) {
+                    const v = a - b;
+                    const pct = b === 0 ? 0 : v / b * 100;
+                    return { v, pct: (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%' };
+                }
+                const items = document.querySelectorAll('.comparison-item');
+                if (items.length < 4) return;
+                
+                const d0 = diffCalc(p2.avg_weekly,   p1.avg_weekly);
+                const d1 = diffCalc(p2.achieve_rate,  p1.achieve_rate);
+
+                // カード0: 週平均差
+                const v0 = items[0].querySelector('.comparison-item-value');
+                const b0 = items[0].querySelector('.diff-badge');
+                if (v0) v0.firstChild.textContent = (d0.v >= 0 ? '+' : '') + d0.v.toFixed(1) + ' 件 ';
+                if (b0) b0.textContent = d0.pct;
+                items[0].className = 'comparison-item' + (d0.v > 0 ? ' positive' : d0.v < 0 ? ' negative' : '');
+                if (b0) b0.className = 'diff-badge' + (d0.v > 0 ? ' positive' : d0.v < 0 ? ' negative' : '');
+
+                // カード1: 達成率差
+                const v1 = items[1].querySelector('.comparison-item-value');
+                const b1 = items[1].querySelector('.diff-badge');
+                if (v1) v1.firstChild.textContent = (d1.v >= 0 ? '+' : '') + d1.v.toFixed(1) + '% ';
+                if (b1) b1.textContent = d1.pct;
+                items[1].className = 'comparison-item' + (d1.v > 0 ? ' positive' : d1.v < 0 ? ' negative' : '');
+                if (b1) b1.className = 'diff-badge' + (d1.v > 0 ? ' positive' : d1.v < 0 ? ' negative' : '');
+
+                // カード2: 予測ラベル+値
+                const lbl2 = items[2].querySelector('.comparison-item-label');
+                const v2   = items[2].querySelector('.comparison-item-value');
+                const b2   = items[2].querySelector('.diff-badge');
+                if (lbl2) lbl2.textContent = forecastLabel;
+                if (v2) v2.firstChild.textContent = p2.last8_avg.toFixed(1) + '件/週  ';
+                if (b2) {
+                    b2.textContent = p2.last8_achieve_rate.toFixed(0) + '%';
+                    b2.className = 'diff-badge' + (p2.last8_achieve_rate >= 100 ? ' positive' : ' negative');
+                }
+                items[2].className = 'comparison-item' + (p2.last8_achieve_rate >= 100 ? ' positive' : ' negative');
+
+                // カード3: 前期実績
+                const lbl3 = items[3].querySelector('.comparison-item-label');
+                const v3   = items[3].querySelector('.comparison-item-value');
+                if (lbl3) lbl3.textContent = modeData[currentMode].p1_name + '実績（週平均）';
+                if (v3) v3.textContent = p1.avg_weekly.toFixed(1) + '件/週';
+            }
+
+            function switchTab(period) {
+                const buttons = document.querySelectorAll('.tab-button');
+                const columns = document.querySelectorAll('.column');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                columns.forEach(col => col.classList.remove('active'));
+                if (period === 'period2') {
+                    buttons[0].classList.add('active');
+                    document.querySelector('.period-2').classList.add('active');
+                } else {
+                    buttons[1].classList.add('active');
+                    document.querySelector('.period-1').classList.add('active');
+                }
+            }
+            
+            const weeklyTarget = 14.1;
+            
+            function drawChart(ctxId, data, tableId) {
+                if (!data || data.length === 0) return null;
+                
+                const backgroundColors = data.map(d => d['達成'] ? 'rgba(16, 185, 129, 0.6)' : 'rgba(156, 163, 175, 0.6)');
+                const borderColors     = data.map(d => d['達成'] ? 'rgba(16, 185, 129, 1)'   : 'rgba(107, 114, 128, 1)');
+                
+                const datasets = [
+                    {
+                        label: '週次件数',
+                        data: data.map(d => d['週件数']),
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 2,
+                        type: 'bar', yAxisID: 'y', order: 3
+                    },
+                    {
+                        label: '累積達成率（%）',
+                        data: data.map(d => d['累積達成率']),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3, pointRadius: 3,
+                        pointBackgroundColor: '#EF4444',
+                        fill: false, tension: 0.4,
+                        type: 'line', yAxisID: 'y1', order: 1
+                    },
+                    {
+                        label: '目標(' + weeklyTarget + '件)',
+                        data: Array(data.length).fill(weeklyTarget),
+                        borderColor: '#10B981', borderDash: [5, 5],
+                        borderWidth: 2, pointRadius: 0,
+                        fill: false, type: 'line', yAxisID: 'y', order: 4
+                    },
+                    {
+                        label: '累積目標100%',
+                        data: Array(data.length).fill(100),
+                        borderColor: '#EF4444', borderDash: [3, 3],
+                        borderWidth: 1.5, pointRadius: 0,
+                        fill: false, type: 'line', yAxisID: 'y1', order: 5
+                    }
+                ];
+                
+                const ctx = document.getElementById(ctxId);
+                if (!ctx) return null;
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: data.map(d => d['週ラベル']), datasets: datasets },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { 
+                            legend: { 
+                                display: true, position: 'top',
+                                labels: { font: { size: window.innerWidth > 480 ? 11 : 9 }, usePointStyle: true, padding: 10, boxWidth: 15 }
+                            },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                callbacks: {
+                                    afterBody: function(context) {
+                                        const i = context[0].dataIndex;
+                                        return [data[i]['達成'] ? '✓ 週次目標達成' : '✗ 週次未達成', '累積: ' + data[i]['累積達成率'] + '%'];
+                                    }
+                                }
+                            },
+                            zoom: {
+                                pan: { enabled: true, mode: 'x' },
+                                zoom: { wheel: { enabled: false }, pinch: { enabled: true }, mode: 'x' }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 }, grid: { display: false } },
+                            y: {
+                                type: 'linear', display: true, position: 'left', beginAtZero: true,
+                                title: { display: true, text: '週次件数', font: { size: 12, weight: 'bold' } },
+                                ticks: { font: { size: 10 } },
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            y1: {
+                                type: 'linear', display: true, position: 'right', beginAtZero: true, max: 120,
+                                title: { display: true, text: '累積達成率（%）', font: { size: 12, weight: 'bold' } },
+                                ticks: { font: { size: 10 }, callback: v => v + '%' },
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
+                
+                // テーブル生成
+                if (tableId) {
+                    const tbody = document.getElementById(tableId);
+                    if (tbody) {
+                        tbody.innerHTML = '';
+                        data.forEach((row, idx) => {
+                            const tr = document.createElement('tr');
+                            tr.className = row['達成'] ? 'achieved' : 'not-achieved';
+                            tr.innerHTML = `<td>${idx+1}</td><td>${row['週ラベル']}</td><td>${row['週件数']}件</td><td>${row['達成率']}%</td><td>${row['達成'] ? '✓ 達成' : '✗ 未達成'}</td>`;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                }
+                return chart;
+            }
+            
+            setTimeout(() => {
+                const initD = modeData[currentMode];
+                chart1Inst = drawChart('chart1', initD.p1_chart, 'table1');
+                chart2Inst = drawChart('chart2', initD.p2_chart, 'table2');
+                document.getElementById('loading').classList.remove('show');
+            }, 100);
+        </script>
+    </body>
+    </html>
+    
