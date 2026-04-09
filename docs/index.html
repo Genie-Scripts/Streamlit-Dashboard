@@ -1,420 +1,92 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>診療ダッシュボード</title>
-    
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K6XTL1DM13"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-K6XTL1DM13');
-    </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>サイト移転のお知らせ | 2026年度版 診療ダッシュボード</title>
+    <meta http-equiv="refresh" content="10;url=https://genie-scripts.github.io/Dashboard/portal.html">
     <style>
-        /* ══ DESIGN TOKENS ══ */
-        :root {
-            --bg-page:      #F0F2F5;
-            --bg-card:      #FFFFFF;
-            --bg-elevated:  #F7F9FC;
-            --bg-header:    #1D2B3A;
-            --border:       #DCE1E9;
-            --border-mid:   #C4CCD8;
-            --accent:       #3A6EA5;
-            --accent-light: #EEF3FA;
-            --accent-hover: #2F5A8A;
-            --text-primary:   #1A2535;
-            --text-secondary: #5A6A82;
-            --text-muted:     #94A3B8;
-            --font-ui:   'Noto Sans JP', 'Hiragino Sans', sans-serif;
-            --font-mono: 'IBM Plex Mono', monospace;
-            --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
-            --shadow-sm: 0 1px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 14px rgba(0,0,0,0.12);
-            --sheet-z: 500;
-        }
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: var(--font-ui);
-            background: var(--bg-page);
-            color: var(--text-primary);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        body.sheet-open { overflow: hidden; }
-
-        /* ══ STICKY HEADER ══ */
-        .site-header {
-            background: var(--bg-header);
-            color: #E8EEF5;
-            padding: 0 32px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky; top: 0; z-index: 200;
-            border-bottom: 2px solid var(--accent);
-        }
-        .header-left { display: flex; align-items: center; gap: 14px; }
-        .header-badge {
-            background: var(--accent); color: #fff;
-            font-size: 0.6rem; font-weight: 700;
-            letter-spacing: 0.14em; text-transform: uppercase;
-            padding: 3px 8px; border-radius: 4px; white-space: nowrap;
-        }
-        .header-title { font-size: 1.0rem; font-weight: 600; color: #E8EEF5; }
-
-        /* ══ UPDATE BANNER ══ */
-        .update-banner {
-            background: var(--accent-light);
-            border-bottom: 1px solid #C8D9EE;
-            padding: 7px 32px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .update-banner-dot {
-            width: 7px; height: 7px;
-            background: #4ade80;
-            border-radius: 50%;
-            flex-shrink: 0;
-            box-shadow: 0 0 0 2px rgba(74,222,128,0.25);
-        }
-        .update-banner-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--accent);
-            letter-spacing: 0.05em;
-            white-space: nowrap;
-        }
-        .update-banner-time {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            font-family: var(--font-mono);
-        }
-
-        /* ══ LAYOUT ══ */
-        .container { max-width: 1200px; margin: 0 auto; padding: 28px 32px 80px; }
-
-        /* ══ SECTION HEAD ══ */
-        .section-head {
-            display: flex; align-items: center; gap: 10px; margin: 0 0 18px;
-        }
-        .section-label {
-            font-size: 0.67rem; font-weight: 700; letter-spacing: 0.14em;
-            color: var(--text-muted); text-transform: uppercase; white-space: nowrap;
-        }
-        .section-head::after { content:''; flex:1; height:1px; background: var(--border); }
-
-        /* ══ GRID: 3col desktop / 2col mobile ══ */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
-        }
-
-        /* ══ TILE CARD ══ */
-        .tile-card {
-            background: var(--bg-card);
-            border-radius: var(--r-lg);
-            border: 1px solid var(--border);
-            border-top: 3px solid var(--accent);
-            padding: 16px 14px 28px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            transition: transform 0.15s ease, box-shadow 0.15s ease, border-top-color 0.15s ease;
-            box-shadow: var(--shadow-sm);
-            opacity: 0;
-            animation: fadeUp 0.4s ease-out forwards;
-            min-height: 72px;
-            position: relative;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .tile-card:hover, .tile-card:focus-visible {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-            border-top-color: var(--accent-hover);
-            outline: none;
-        }
-        .tile-card:active { transform: translateY(-1px); }
-        .tile-title {
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            line-height: 1.4;
-        }
-        .tile-arrow {
-            position: absolute;
-            bottom: 10px; right: 12px;
-            font-size: 1rem;
-            color: var(--border-mid);
-            transition: color 0.15s ease, transform 0.15s ease;
-        }
-        .tile-card:hover .tile-arrow { color: var(--accent); transform: translateX(3px); }
-
-        /* ══ ANIMATIONS ══ */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .tile-card:nth-child(1)  { animation-delay: 0.04s; }
-        .tile-card:nth-child(2)  { animation-delay: 0.08s; }
-        .tile-card:nth-child(3)  { animation-delay: 0.12s; }
-        .tile-card:nth-child(4)  { animation-delay: 0.16s; }
-        .tile-card:nth-child(5)  { animation-delay: 0.20s; }
-        .tile-card:nth-child(6)  { animation-delay: 0.24s; }
-        .tile-card:nth-child(7)  { animation-delay: 0.28s; }
-        .tile-card:nth-child(8)  { animation-delay: 0.32s; }
-        .tile-card:nth-child(9)  { animation-delay: 0.36s; }
-        .tile-card:nth-child(10) { animation-delay: 0.40s; }
-
-        /* ══ OVERLAY ══ */
-        .overlay {
-            position: fixed; inset: 0;
-            background: rgba(15,25,40,0.48);
-            z-index: calc(var(--sheet-z) - 1);
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
-        }
-        .overlay.active { opacity: 1; pointer-events: all; }
-
-        /* ══ BOTTOM SHEET ══ */
-        .bottom-sheet {
-            position: fixed;
-            left: 0; right: 0; bottom: 0;
-            z-index: var(--sheet-z);
-            background: var(--bg-card);
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
-            padding: 0 0 env(safe-area-inset-bottom, 0);
-            transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
-            max-height: 75vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .bottom-sheet.active { transform: translateY(0); }
-        .sheet-handle-area {
-            padding: 14px 20px 0;
-            display: flex; flex-direction: column;
-            align-items: center; gap: 12px; flex-shrink: 0;
-        }
-        .sheet-handle {
-            width: 40px; height: 4px;
-            background: var(--border-mid); border-radius: 2px;
-        }
-        .sheet-header {
-            width: 100%;
-            display: flex; align-items: flex-start;
-            justify-content: space-between;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-        .sheet-title {
-            font-size: 1.05rem; font-weight: 700;
-            color: var(--text-primary); line-height: 1.3;
-        }
-        .sheet-close {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            width: 30px; height: 30px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 1rem;
-            color: var(--text-secondary); flex-shrink: 0;
-            transition: background 0.15s ease;
-        }
-        .sheet-close:hover { background: var(--border); }
-        .sheet-body {
-            padding: 16px 20px 24px;
-            overflow-y: auto; flex: 1;
-        }
-        .sheet-desc {
-            font-size: 0.9rem; color: var(--text-secondary);
-            line-height: 1.7; margin-bottom: 16px;
-        }
-        .sheet-meta {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 0.72rem; font-family: var(--font-mono);
-            color: var(--text-muted); margin-bottom: 24px;
-            padding: 8px 12px;
-            background: var(--bg-elevated);
-            border-radius: var(--r-sm);
-            border: 1px solid var(--border);
-        }
-        .sheet-meta-dot {
-            width: 6px; height: 6px;
-            background: #4ade80; border-radius: 50%; flex-shrink: 0;
-        }
-        .sheet-btn {
-            display: flex; align-items: center;
-            justify-content: center; gap: 8px;
-            width: 100%; padding: 14px 20px;
-            background: var(--accent); color: #fff;
-            border: none; border-radius: var(--r-md);
-            font-family: var(--font-ui);
-            font-size: 0.95rem; font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s ease, transform 0.1s ease;
-            text-decoration: none;
-        }
-        .sheet-btn:hover { background: var(--accent-hover); }
-        .sheet-btn:active { transform: scale(0.98); }
-
-        /* ══ FOOTER ══ */
-        .footer {
-            text-align: center; padding: 32px 20px;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border);
-            margin-top: 48px;
-            font-size: 0.78rem; font-family: var(--font-mono);
-        }
-        .footer p { margin-bottom: 4px; }
-
-        /* ══ RESPONSIVE ══ */
-        @media (max-width: 600px) {
-            .site-header { padding: 0 14px; }
-            .update-banner { padding: 7px 14px; }
-            .container { padding: 18px 12px 60px; }
-            .dashboard-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .tile-card { padding: 14px 12px 26px; }
-            .tile-title { font-size: 0.82rem; }
-        }
-        @media print {
-            .site-header { position: static; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .bottom-sheet, .overlay { display: none; }
-        }
+      body {
+        font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        background-color: #f4f7f9;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 600px;
+        width: 90%;
+      }
+      h1 {
+        color: #0056b3;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      p {
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+      .url-box {
+        background-color: #e9ecef;
+        padding: 15px;
+        border-radius: 4px;
+        word-break: break-all;
+        font-family: monospace;
+        margin-bottom: 30px;
+      }
+      .btn {
+        display: inline-block;
+        background-color: #0056b3;
+        color: #fff;
+        padding: 12px 30px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+      }
+      .btn:hover {
+        background-color: #004494;
+      }
+      .footer {
+        margin-top: 30px;
+        font-size: 14px;
+        color: #777;
+      }
     </style>
-</head>
-<body>
-
-<!-- HEADER -->
-<header class="site-header">
-    <div class="header-left">
-        <span class="header-badge">Portal</span>
-        <span class="header-title">📊 診療ダッシュボード</span>
+  </head>
+  <body>
+    
+    <div class="container">
+      <h1>サイト移転のお知らせ</h1>
+      <p>
+        「診療ダッシュボード」をご利用いただきありがとうございます。<br>
+        この度、本サイトは下記の通り<strong>「2026年度版 診療ダッシュボード」</strong>として移転いたしました。
+      </p>
+      
+      <div class="url-box">
+        新アドレス：<br>
+        <a href="https://genie-scripts.github.io/Dashboard/portal.html">https://genie-scripts.github.io/Dashboard/portal.html</a>
+      </div>
+      
+      <p>
+        お手数ですが、ブラウザの「お気に入り」や「ブックマーク」に登録されている場合は、新しいURLへの変更をお願いいたします。
+      </p>
+      
+      <a href="https://genie-scripts.github.io/Dashboard/portal.html" class="btn">新サイトへ移動する</a>
+      
+      <div class="footer">
+        ※10秒後に自動的に新サイトへ移動します。<br>
+        移動しない場合は、上のボタンをクリックしてください。
+      </div>
     </div>
-</header>
-
-<!-- UPDATE BANNER -->
-<div class="update-banner">
-    <span class="update-banner-dot"></span>
-    <span class="update-banner-label">最終更新</span>
-    <span class="update-banner-time">2026年04月09日 06:58</span>
-</div>
-
-<!-- MAIN -->
-<div class="container">
-    <div class="section-head">
-        <span class="section-label">各種レポート</span>
-    </div>
-    <div class="dashboard-grid" id="dashboardGrid"></div>
-</div>
-
-<!-- FOOTER -->
-<div class="footer">
-    <p>経営企画室 2025</p>
-    <p>ページ生成: 2026年04月09日 06:58:54</p>
-</div>
-
-<!-- OVERLAY -->
-<div class="overlay" id="overlay" role="presentation"></div>
-
-<!-- BOTTOM SHEET -->
-<div class="bottom-sheet" id="bottomSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-    <div class="sheet-handle-area">
-        <div class="sheet-handle"></div>
-        <div class="sheet-header">
-            <span class="sheet-title" id="sheetTitle"></span>
-            <button class="sheet-close" id="sheetClose" aria-label="閉じる">✕</button>
-        </div>
-    </div>
-    <div class="sheet-body">
-        <p class="sheet-desc" id="sheetDesc"></p>
-        <div class="sheet-meta">
-            <span class="sheet-meta-dot"></span>
-            <span id="sheetUpdate"></span>
-        </div>
-        <a class="sheet-btn" id="sheetLink" href="#" target="_self">
-            レポートを開く →
-        </a>
-    </div>
-</div>
-
-<script>
-    const reports = [
-        { title: '入院分析', desc: '入院患者数や在院日数、退院管理を病棟・診療科毎に分析、グラフ化（直近12週）', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index01/' },
-        { title: '新入院分析', desc: '新入院患者数の目標達成状況を病棟・診療科毎、期間（短期、長期）で分析、グラフ化（直近24週）', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index02/' },
-        { title: '全麻手術件数', desc: '全身麻酔手術件数を週単位、月単位で分析、グラフ化（直近12週）', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index03/' },
-        { title: '粗利_月次', desc: '入院・外来粗利を診療科毎に月次分析、グラフ化（過去6ヵ月間）', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index04/' },
-        { title: '診療科サマリ', desc: '診療科ごとの主要な指標サマリ（直近週）', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index05/' },
-        { title: '病棟サマリ', desc: '病棟ごとの主要な指標サマリ（直近週）', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index06/' },
-        { title: '入院分析_年度', desc: '入院患者数や在院日数を昨年度同期間と比較（直近週）', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index07/' },
-        { title: '全麻手術件数_年度', desc: '全身麻酔手術件数の目標達成状況を昨年同期間と比較、グラフ化（年度）', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index08/' },
-        { title: '全麻手術件数_診療科別', desc: '全身麻酔手術件数の目標達成状況を診療科別にグラフ化、分析、年度予測', updated: '2026/04/09 06:58', url: 'https://genie-scripts.github.io/Streamlit-Dashboard/index09/' },
-    ];
-
-    // Render tiles
-    const grid = document.getElementById('dashboardGrid');
-    reports.forEach(function(r) {
-        const card = document.createElement('div');
-        card.className = 'tile-card';
-        card.setAttribute('tabindex', '0');
-        card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', r.title);
-        card.innerHTML = '<span class="tile-title">' + r.title + '</span><span class="tile-arrow">›</span>';
-        card.addEventListener('click', function() { openSheet(r); });
-        card.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet(r); }
-        });
-        grid.appendChild(card);
-    });
-
-    // Sheet logic
-    const sheet   = document.getElementById('bottomSheet');
-    const overlay = document.getElementById('overlay');
-    const sheetClose = document.getElementById('sheetClose');
-
-    function openSheet(r) {
-        document.getElementById('sheetTitle').textContent  = r.title;
-        document.getElementById('sheetDesc').textContent   = r.desc;
-        document.getElementById('sheetUpdate').textContent = '最終更新: ' + r.updated;
-        document.getElementById('sheetLink').href = r.url;
-        sheet.classList.add('active');
-        overlay.classList.add('active');
-        document.body.classList.add('sheet-open');
-        sheetClose.focus();
-    }
-
-    function closeSheet() {
-        sheet.classList.remove('active');
-        overlay.classList.remove('active');
-        document.body.classList.remove('sheet-open');
-    }
-
-    sheetClose.addEventListener('click', closeSheet);
-    overlay.addEventListener('click', closeSheet);
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && sheet.classList.contains('active')) closeSheet();
-    });
-
-    // Swipe down to close
-    var startY = 0;
-    sheet.addEventListener('touchstart', function(e) { startY = e.touches[0].clientY; }, {passive: true});
-    sheet.addEventListener('touchend', function(e) {
-        if (e.changedTouches[0].clientY - startY > 60) closeSheet();
-    }, {passive: true});
-</script>
-
-</body>
+    
+  </body>
 </html>
